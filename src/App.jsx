@@ -34,7 +34,10 @@ export default function App() {
   const togglePin  = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder  = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
   const addSubfolder = (folderName, sf) => setSubfolders(prev => ({ ...prev, [folderName]: [...(prev[folderName] || []), sf] }));
-  const updateNote = (updated) => setNotes(ns => ns.map(n => n.id === updated.id ? updated : n));
+  const updateNote = (updated) => setNotes(ns => {
+    const exists = ns.some(n => n.id === updated.id);
+    return exists ? ns.map(n => n.id === updated.id ? updated : n) : [...ns, updated];
+  });
 
   const handleTogglePin = (val) => {
     if (val) { setShowPINSetup(true); }

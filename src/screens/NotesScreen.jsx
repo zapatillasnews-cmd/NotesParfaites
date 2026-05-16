@@ -24,7 +24,7 @@ export default function NotesScreen({ dark, t, notes, onNoteSelect, onNewNote, o
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-      <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+      <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: t.text, margin: 0 }}>Notes</h1>
           <div style={{ display: 'flex', gap: 8 }}>

@@ -2,18 +2,25 @@ import { useState, useRef } from 'react';
 import { IcPlus, IcFolderN, IcCalendar } from '../icons';
 
 export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelete, dark, t, folders }) {
-  const [title,     setTitle]     = useState(init.title);
-  const [body,      setBody]      = useState(init.body || '');
-  const [tags,      setTags]      = useState([...(init.tags || [])]);
-  const [addingTag, setAddingTag] = useState(false);
-  const [tagInput,  setTagInput]  = useState('');
+  const [title,        setTitle]        = useState(init.title);
+  const [body,         setBody]         = useState(init.body || '');
+  const [tags,         setTags]         = useState([...(init.tags || [])]);
+  const [author,       setAuthor]       = useState(init.author || 'Moi');
+  const [folder,       setFolder]       = useState(init.folder || (folders?.[0]?.name ?? ''));
+  const [showFolders,  setShowFolders]  = useState(false);
+  const [addingTag,    setAddingTag]    = useState(false);
+  const [tagInput,     setTagInput]     = useState('');
   const bodyRef    = useRef(null);
   const tagInputRef= useRef(null);
 
-  const folderData = folders?.find(f => f.name === init.folder);
+  const folderData = folders?.find(f => f.name === folder);
 
   const save = () => {
-    if (onUpdate) onUpdate({ ...init, title, body, tags, preview: body.slice(0, 100) });
+    const now  = new Date();
+    const date = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const fd   = folders?.find(f => f.name === folder);
+    if (onUpdate) onUpdate({ ...init, title, body, tags, author, folder, preview: body.slice(0, 100), date, time, color: fd?.color || init.color, colorLight: fd?.bg || init.colorLight });
     onBack();
   };
 
@@ -66,7 +73,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.card, transition: 'background .3s' }}>
 
       {/* Header */}
-      <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+      <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <button onClick={discard} style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'transparent', border: 'none', padding: 0 }}>
             <svg width="8" height="14" viewBox="0 0 8 14"><path d="M7 1L1 7l6 6" stroke={t.text3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
@@ -95,15 +102,35 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
         {/* Metadata table */}
         <div style={{ borderTop: `1px solid ${t.border}` }}>
           <MRow label="Créé par">
-            <span style={{ fontSize: 14, color: t.text2 }}>{init.author || 'Moi'}</span>
+            <input
+              value={author}
+              onChange={e => setAuthor(e.target.value)}
+              style={{ border: 'none', outline: 'none', fontSize: 14, color: t.text2, background: 'transparent', fontFamily: 'inherit', width: '100%' }}
+            />
           </MRow>
 
           <MRow label="Dossier">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <div style={{ width: 18, height: 18, borderRadius: 5, background: folderData?.bg || '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <IcFolderN s={11} c={folderData?.color || '#6366F1'} filled />
+            <div style={{ flex: 1 }}>
+              <div onClick={() => setShowFolders(s => !s)} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
+                <div style={{ width: 18, height: 18, borderRadius: 5, background: folderData?.bg || '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <IcFolderN s={11} c={folderData?.color || '#6366F1'} filled />
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{folder}</span>
+                <span style={{ fontSize: 11, color: t.text3, marginLeft: 2 }}>▾</span>
               </div>
-              <span style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{init.folder}</span>
+              {showFolders && (
+                <div style={{ marginTop: 8, borderRadius: 10, background: t.bg, overflow: 'hidden', boxShadow: t.shadow }}>
+                  {folders?.map(f => (
+                    <div key={f.id} onClick={() => { setFolder(f.name); setShowFolders(false); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', background: folder === f.name ? t.accentBg : 'transparent' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 4, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <IcFolderN s={10} c={f.color} filled />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: folder === f.name ? t.accent : t.text }}>{f.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </MRow>
 

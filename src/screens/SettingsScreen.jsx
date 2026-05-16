@@ -58,7 +58,7 @@ export default function SettingsScreen({ dark, t, onToggleDark, notes, folders, 
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-      <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+      <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: t.text, margin: '0 0 22px' }}>Paramètres</h1>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 32px' }}>

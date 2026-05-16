@@ -21,7 +21,7 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
     const sfNotes = notes.filter(n => n.folder === activeFolder && n.subfolder === activeSubfolder);
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-        <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+        <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <button onClick={() => setActiveSubfolder(null)} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}>
               <IcBack s={20} c={t.text} />
@@ -53,7 +53,7 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
 
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-        <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+        <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button onClick={() => setActiveFolder(null)} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}><IcBack s={20} c={t.text} /></button>
@@ -99,7 +99,7 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
   // Root folders view
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-      <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+      <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: t.text, margin: 0 }}>Dossiers</h1>
           <IconBtn primary t={t} onClick={onOpenAddFolder}><IcPlus s={16} c={t.btnText} /></IconBtn>

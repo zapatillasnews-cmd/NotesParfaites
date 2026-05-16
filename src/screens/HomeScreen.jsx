@@ -12,7 +12,7 @@ export default function HomeScreen({ dark, t, notes, folders, onNoteSelect, onNa
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>
-      <div style={{ paddingTop: 62, padding: '62px 20px 0', flexShrink: 0 }}>
+      <div style={{ paddingTop: 62, padding: '20px 20px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <p style={{ fontSize: 12, color: t.text3, fontWeight: 500, margin: '0 0 3px', textTransform: 'capitalize' }}>{todayFR()}</p>

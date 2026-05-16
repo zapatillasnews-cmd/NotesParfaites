@@ -55,6 +55,7 @@ export default function App() {
           dark={dark}
           t={t}
           folders={folders}
+          subfolders={subfolders}
         />
       );
     }

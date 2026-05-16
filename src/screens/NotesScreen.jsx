@@ -12,13 +12,17 @@ export default function NotesScreen({ dark, t, notes, onNoteSelect, onNewNote, o
 
   const allTags = useMemo(() => [...new Set(notes.flatMap(n => n.tags))], [notes]);
 
-  const visible = notes.filter(n => {
-    const q      = search.toLowerCase();
-    const matchQ = !q || n.title.toLowerCase().includes(q) || (n.body || '').toLowerCase().includes(q) || n.tags.some(tg => tg.toLowerCase().includes(q));
-    const matchF = filter === 'all' || (filter === 'pinned' && n.pinned) || filter === 'recent';
-    const matchT = !tagFilter || n.tags.includes(tagFilter);
-    return matchQ && matchF && matchT;
-  });
+  const visible = useMemo(() => {
+    const filtered = notes.filter(n => {
+      const q      = search.toLowerCase();
+      const matchQ = !q || n.title.toLowerCase().includes(q) || (n.body || '').toLowerCase().includes(q) || n.tags.some(tg => tg.toLowerCase().includes(q));
+      const matchF = filter === 'all' || (filter === 'pinned' && n.pinned) || filter === 'recent';
+      const matchT = !tagFilter || n.tags.includes(tagFilter);
+      return matchQ && matchF && matchT;
+    });
+    if (filter === 'recent') return [...filtered].sort((a, b) => b.id - a.id);
+    return filtered;
+  }, [notes, search, filter, tagFilter]);
 
   const FILTERS = [{ id: 'all', l: 'Toutes' }, { id: 'pinned', l: 'Épinglées' }, { id: 'recent', l: 'Récentes' }];
 

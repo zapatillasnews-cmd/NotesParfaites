@@ -143,13 +143,20 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
                 </span>
               ))}
               {addingTag ? (
-                <input ref={tagInputRef} value={tagInput}
-                  onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); confirmTag(); } if (e.key === 'Escape') { setAddingTag(false); setTagInput(''); } }}
-                  onBlur={confirmTag}
-                  placeholder="nouveau tag"
-                  style={{ border: 'none', outline: 'none', fontSize: 13, color: t.text, background: 'transparent', fontFamily: 'inherit', width: 100, padding: '2px 0' }}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input ref={tagInputRef} value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); confirmTag(); } if (e.key === 'Escape') { setAddingTag(false); setTagInput(''); } }}
+                    placeholder="nouveau tag"
+                    style={{ border: 'none', outline: 'none', fontSize: 13, color: t.text, background: 'transparent', fontFamily: 'inherit', width: 100, padding: '2px 0' }}
+                  />
+                  <button
+                    onMouseDown={e => { e.preventDefault(); confirmTag(); }}
+                    onTouchStart={e => { e.preventDefault(); confirmTag(); }}
+                    style={{ fontSize: 15, color: t.accent, background: 'transparent', border: 'none', fontWeight: 700, padding: '0 4px', fontFamily: 'inherit', lineHeight: 1 }}>
+                    ✓
+                  </button>
+                </div>
               ) : (
                 <button onClick={openTagInput} style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px dashed ${t.border2}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <IcPlus s={13} c={t.text3} />

@@ -220,7 +220,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   const currentNote = { ...init, title, body: bodyRef.current?.innerHTML || init.body };
 
   return (
-    <div style={{ height: 'calc(100% + env(safe-area-inset-top))', marginTop: 'calc(-1 * env(safe-area-inset-top))', display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
 
       {/* Header */}
       <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)', paddingLeft: '20px', paddingRight: '20px', paddingBottom: 0, flexShrink: 0 }}>

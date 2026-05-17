@@ -182,7 +182,7 @@ export default function App() {
         <PINScreen pin={pin} onUnlock={() => setPinLocked(false)} t={t} dark={dark} />
       ) : (
         <>
-          <div style={{ flex: 1, overflow: 'visible', display: 'flex', flexDirection: 'column', paddingTop: 'env(safe-area-inset-top)' }}>
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', paddingTop: 'env(safe-area-inset-top)' }}>
             {renderContent()}
           </div>
           {!selectedNote && <BottomNav active={page} onNavigate={navigate} t={t} />}

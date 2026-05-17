@@ -220,10 +220,10 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   const currentNote = { ...init, title, body: bodyRef.current?.innerHTML || init.body };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
+    <div style={{ height: 'calc(100% + env(safe-area-inset-top))', marginTop: 'calc(-1 * env(safe-area-inset-top))', display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
 
       {/* Header */}
-      <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
+      <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)', paddingLeft: '20px', paddingRight: '20px', paddingBottom: 0, flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'transparent', border: 'none', padding: 0 }}>
             <svg width="8" height="14" viewBox="0 0 8 14"><path d="M7 1L1 7l6 6" stroke={t.text3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>

@@ -31,6 +31,160 @@ const HIGHLIGHT_COLORS = [
   '#E5E7EB', '#D1D5DB', '#FFF9C4', '#B2EBF2',
 ];
 
+const SceneDecoration = ({ background, dark }) => {
+  if (dark) return null;
+  const grad = NOTE_GRADIENTS.find(g => g.value === background);
+  if (!grad) return null;
+  const wrap = { position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none', overflow: 'hidden' };
+  const sp   = { width: '100%', height: '100%', viewBox: '0 0 390 844', preserveAspectRatio: 'xMidYMid slice' };
+  switch (grad.label) {
+    case 'Ciel': return (
+      <div style={wrap}><svg {...sp}>
+        <g opacity="0.52" fill="white">
+          <ellipse cx="90" cy="145" rx="55" ry="27"/><ellipse cx="58" cy="155" rx="32" ry="21"/>
+          <ellipse cx="125" cy="152" rx="38" ry="23"/><ellipse cx="150" cy="163" rx="25" ry="16"/>
+        </g>
+        <g opacity="0.38" fill="white">
+          <ellipse cx="298" cy="92" rx="46" ry="22"/><ellipse cx="270" cy="100" rx="28" ry="18"/>
+          <ellipse cx="330" cy="99" rx="32" ry="20"/>
+        </g>
+        <g stroke="#60A5FA" fill="none" strokeWidth="2" strokeLinecap="round">
+          <path d="M158 220 Q168 208 178 220"/>
+          <path d="M195 202 Q207 188 219 202"/>
+          <path d="M240 230 Q249 220 258 230"/>
+          <path d="M275 198 Q282 191 289 198" strokeWidth="1.5" stroke="#93C5FD"/>
+        </g>
+      </svg></div>
+    );
+    case 'Plage': return (
+      <div style={wrap}><svg {...sp}>
+        <circle cx="325" cy="105" r="52" fill="#FEF08A" opacity="0.45"/>
+        <circle cx="325" cy="105" r="35" fill="#FDE047" opacity="0.35"/>
+        <path d="M0 732 Q98 710 196 728 Q294 746 390 718 L390 844 L0 844 Z" fill="#FDBA74" opacity="0.32"/>
+        <path d="M0 764 Q130 748 260 762 Q325 770 390 755 L390 844 L0 844 Z" fill="#FED7AA" opacity="0.28"/>
+        <line x1="128" y1="685" x2="150" y2="795" stroke="#92400E" strokeWidth="3" strokeLinecap="round"/>
+        <path d="M83 680 Q128 638 173 680 Z" fill="#EF4444" opacity="0.8"/>
+        <line x1="83" y1="680" x2="128" y2="638" stroke="#B91C1C" strokeWidth="1.2" opacity="0.7"/>
+        <line x1="128" y1="638" x2="173" y2="680" stroke="#B91C1C" strokeWidth="1.2" opacity="0.7"/>
+        <path d="M258 745 L266 792 L298 792 L306 745 Z" fill="rgba(186,230,253,0.6)" stroke="#7DD3FC" strokeWidth="1.5"/>
+        <circle cx="282" cy="742" r="17" fill="#FDE047" stroke="#EAB308" strokeWidth="1.5"/>
+        <line x1="282" y1="725" x2="282" y2="759" stroke="#EAB308" strokeWidth="1"/>
+        <line x1="265" y1="742" x2="299" y2="742" stroke="#EAB308" strokeWidth="1"/>
+        <line x1="292" y1="740" x2="310" y2="717" stroke="#F472B6" strokeWidth="2.5" strokeLinecap="round"/>
+      </svg></div>
+    );
+    case 'Forêt': return (
+      <div style={wrap}><svg {...sp}>
+        <circle cx="195" cy="85" r="48" fill="#A7F3D0" opacity="0.22"/>
+        <g fill="#065F46" opacity="0.42">
+          <polygon points="25,792 58,705 91,792"/><rect x="50" y="792" width="8" height="34"/>
+          <polygon points="62,788 98,712 134,788"/><rect x="90" y="788" width="8" height="34"/>
+          <polygon points="0,800 25,748 50,800"/>
+        </g>
+        <g fill="#065F46" opacity="0.35">
+          <polygon points="305,785 338,705 371,785"/><rect x="330" y="785" width="8" height="35"/>
+          <polygon points="342,798 366,730 390,798"/>
+          <polygon points="278,800 298,752 318,800"/>
+        </g>
+        <g fill="#34D399" opacity="0.2">
+          <ellipse cx="345" cy="92" rx="22" ry="52" transform="rotate(-24 345 92)"/>
+          <ellipse cx="368" cy="115" rx="18" ry="42" transform="rotate(18 368 115)"/>
+          <ellipse cx="320" cy="120" rx="16" ry="38" transform="rotate(-44 320 120)"/>
+        </g>
+      </svg></div>
+    );
+    case 'Coucher': return (
+      <div style={wrap}><svg {...sp}>
+        <g fill="#C4B5FD" opacity="0.5">
+          <circle cx="55" cy="72" r="2"/><circle cx="112" cy="48" r="2.5"/><circle cx="198" cy="60" r="1.8"/>
+          <circle cx="265" cy="42" r="2"/><circle cx="335" cy="70" r="2"/><circle cx="308" cy="108" r="1.5"/>
+          <circle cx="168" cy="36" r="1.8"/><circle cx="80" cy="115" r="1.5"/>
+        </g>
+        <circle cx="195" cy="815" r="105" fill="#FBBF24" opacity="0.2"/>
+        <circle cx="195" cy="815" r="68" fill="#F97316" opacity="0.16"/>
+        <path d="M0 778 Q75 728 158 758 Q238 788 320 742 Q360 720 390 748 L390 844 L0 844 Z" fill="#EDE9FE" opacity="0.42"/>
+        <path d="M0 808 Q100 782 200 798 Q300 814 390 792 L390 844 L0 844 Z" fill="#DDD6FE" opacity="0.38"/>
+      </svg></div>
+    );
+    case 'Nuit': return (
+      <div style={wrap}><svg {...sp}>
+        <circle cx="308" cy="95" r="42" fill="#FDE68A" opacity="0.55"/>
+        <circle cx="328" cy="80" r="36" fill="#1E1B4B" opacity="0.92"/>
+        <g fill="white">
+          <circle cx="38" cy="58" r="1.8" opacity="0.85"/><circle cx="78" cy="38" r="2.2" opacity="0.9"/>
+          <circle cx="132" cy="78" r="1.5" opacity="0.78"/><circle cx="168" cy="28" r="2" opacity="0.88"/>
+          <circle cx="215" cy="58" r="1.2" opacity="0.65"/><circle cx="252" cy="42" r="2" opacity="0.9"/>
+          <circle cx="48" cy="135" r="1.5" opacity="0.58"/><circle cx="98" cy="152" r="1.8" opacity="0.72"/>
+          <circle cx="162" cy="118" r="1.2" opacity="0.62"/><circle cx="228" cy="138" r="1.5" opacity="0.8"/>
+          <circle cx="355" cy="48" r="1.8" opacity="0.72"/><circle cx="18" cy="198" r="1.5" opacity="0.6"/>
+          <path d="M168 28 l1.6 4.4 4.6 0 -3.7 2.8 1.4 4.4 -3.9 -2.8 -3.9 2.8 1.4 -4.4 -3.7 -2.8 4.6 0 Z"/>
+        </g>
+        <line x1="55" y1="260" x2="140" y2="300" stroke="white" strokeWidth="1.2" opacity="0.28" strokeLinecap="round"/>
+      </svg></div>
+    );
+    case 'Aurore': return (
+      <div style={wrap}><svg {...sp}>
+        <circle cx="62" cy="85" r="58" fill="#FDE68A" opacity="0.28"/>
+        <circle cx="62" cy="85" r="40" fill="#FDE047" opacity="0.22"/>
+        <g stroke="#FDE047" strokeWidth="2.5" opacity="0.18" strokeLinecap="round">
+          <line x1="62" y1="12" x2="62" y2="28"/><line x1="112" y1="35" x2="100" y2="47"/>
+          <line x1="128" y1="85" x2="112" y2="85"/><line x1="110" y1="133" x2="98" y2="121"/>
+          <line x1="14" y1="35" x2="26" y2="47"/><line x1="0" y1="85" x2="16" y2="85"/>
+        </g>
+        <path d="M-60 210 Q195 95 450 188" stroke="#FCA5A5" strokeWidth="48" fill="none" opacity="0.1" strokeLinecap="round"/>
+        <path d="M-60 255 Q195 148 450 232" stroke="#DDD6FE" strokeWidth="34" fill="none" opacity="0.12" strokeLinecap="round"/>
+        <path d="M-60 298 Q195 198 450 275" stroke="#FDE68A" strokeWidth="22" fill="none" opacity="0.1" strokeLinecap="round"/>
+      </svg></div>
+    );
+    case 'Océan': return (
+      <div style={wrap}><svg {...sp}>
+        <g transform="translate(290,128) rotate(-12)">
+          <ellipse cx="0" cy="0" rx="24" ry="10" fill="#67E8F9" opacity="0.28"/>
+          <polygon points="24,0 38,-9 38,9" fill="#22D3EE" opacity="0.22"/>
+          <circle cx="-10" cy="-2" r="2.5" fill="#0891B2" opacity="0.25"/>
+        </g>
+        <g transform="translate(85,188) rotate(12)">
+          <ellipse cx="0" cy="0" rx="17" ry="7.5" fill="#A5F3FC" opacity="0.22"/>
+          <polygon points="17,0 28,-7 28,7" fill="#22D3EE" opacity="0.18"/>
+          <circle cx="-7" cy="-1" r="2" fill="#0891B2" opacity="0.22"/>
+        </g>
+        <g stroke="white" fill="none" strokeLinecap="round">
+          <path d="M0 718 Q49 702 98 718 Q147 734 196 718 Q245 702 294 718 Q343 734 390 718" strokeWidth="2.5" opacity="0.32"/>
+          <path d="M0 752 Q65 736 130 752 Q196 768 262 752 Q326 736 390 752" strokeWidth="2.2" opacity="0.28"/>
+          <path d="M0 784 Q82 768 164 784 Q246 800 328 784 L390 782" strokeWidth="1.8" opacity="0.22"/>
+        </g>
+        <path d="M0 735 Q98 718 196 735 Q294 752 390 735 L390 844 L0 844 Z" fill="#0891B2" opacity="0.18"/>
+        <g fill="white" opacity="0.35">
+          <circle cx="58" cy="698" r="4.5"/><circle cx="162" cy="712" r="3.5"/>
+          <circle cx="278" cy="697" r="4.5"/><circle cx="342" cy="708" r="3"/>
+        </g>
+      </svg></div>
+    );
+    case 'Menthe': return (
+      <div style={wrap}><svg {...sp}>
+        <g fill="#059669" opacity="0.3">
+          <ellipse cx="338" cy="82" rx="21" ry="48" transform="rotate(-22 338 82)"/>
+          <ellipse cx="362" cy="105" rx="18" ry="42" transform="rotate(16 362 105)"/>
+          <ellipse cx="315" cy="115" rx="16" ry="37" transform="rotate(-44 315 115)"/>
+          <ellipse cx="352" cy="145" rx="14" ry="33" transform="rotate(32 352 145)"/>
+        </g>
+        <path d="M338 165 Q344 205 336 258" stroke="#059669" strokeWidth="2.5" fill="none" opacity="0.2" strokeLinecap="round"/>
+        <g fill="#34D399" opacity="0.22">
+          <ellipse cx="48" cy="755" rx="19" ry="43" transform="rotate(28 48 755)"/>
+          <ellipse cx="23" cy="735" rx="16" ry="36" transform="rotate(-12 23 735)"/>
+          <ellipse cx="72" cy="778" rx="14" ry="30" transform="rotate(52 72 778)"/>
+        </g>
+        <path d="M45 720 Q40 680 48 640" stroke="#34D399" strokeWidth="2" fill="none" opacity="0.18" strokeLinecap="round"/>
+        <g fill="#6EE7B7" opacity="0.35">
+          <circle cx="105" cy="148" r="3.5"/><circle cx="292" cy="305" r="3"/>
+          <circle cx="52" cy="408" r="2.5"/><circle cx="348" cy="502" r="3.5"/>
+        </g>
+      </svg></div>
+    );
+    default: return null;
+  }
+};
+
 const MRow = ({ label, children, last = false, alignTop = false, t }) => (
   <div style={{ display: 'flex', alignItems: alignTop ? 'flex-start' : 'center', padding: '13px 0', borderBottom: last ? 'none' : `1px solid ${t.border}` }}>
     <span style={{ fontSize: 13.5, color: t.text3, width: 90, flexShrink: 0, paddingTop: alignTop ? 2 : 0, fontWeight: 400 }}>{label}</span>
@@ -81,6 +235,16 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
     document.addEventListener('selectionchange', update);
     return () => document.removeEventListener('selectionchange', update);
   }, []);
+
+  useEffect(() => {
+    if (dark || !noteBackground) return;
+    const color = noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0];
+    if (!color) return;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
+    return () => {
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = '#F4F4F4'; });
+    };
+  }, [noteBackground, dark]);
 
   const saveRange = () => {
     const sel = window.getSelection();
@@ -184,7 +348,8 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   const currentNote = { ...init, title, body: bodyRef.current?.innerHTML || init.body };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: screenBg, transition: 'background .3s' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: screenBg, transition: 'background .3s', position: 'relative' }}>
+      <SceneDecoration background={noteBackground} dark={dark} />
 
       {/* Header */}
       <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>

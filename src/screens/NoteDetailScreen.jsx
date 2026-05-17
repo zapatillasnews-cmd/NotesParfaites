@@ -10,9 +10,8 @@ const MRow = ({ label, children, last = false, alignTop = false, t }) => (
 
 const FmtBtn = ({ onPress, children }) => (
   <button
-    onMouseDown={ev => { ev.preventDefault(); onPress(); }}
-    onTouchStart={ev => { ev.preventDefault(); onPress(); }}
-    style={{ flex: 1, height: '100%', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', padding: 0 }}
+    onClick={onPress}
+    style={{ flex: 1, height: '100%', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', padding: 0, touchAction: 'manipulation' }}
   >
     {children}
   </button>

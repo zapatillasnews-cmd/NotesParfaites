@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getTheme } from './theme';
 import { NOTES_INIT, FOLDERS_INIT, SUBFOLDERS_INIT, makeNewNote } from './data';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -31,13 +31,34 @@ export default function App() {
 
   const navigate = (p) => { setPage(p); setSelectedNote(null); };
 
-  const togglePin  = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
-  const addFolder  = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
+  useEffect(() => {
+    const color = dark ? '#0A0A0A' : '#F4F4F4';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
+  }, [dark]);
+
+  const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
+  const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
   const addSubfolder = (folderName, sf) => setSubfolders(prev => ({ ...prev, [folderName]: [...(prev[folderName] || []), sf] }));
-  const updateNote = (updated) => setNotes(ns => {
+  const updateNote   = (updated) => setNotes(ns => {
     const exists = ns.some(n => n.id === updated.id);
     return exists ? ns.map(n => n.id === updated.id ? updated : n) : [...ns, updated];
   });
+
+  const renameFolder = (oldName, newName) => {
+    setFolders(fs => fs.map(f => f.name === oldName ? { ...f, name: newName } : f));
+    setNotes(ns => ns.map(n => n.folder === oldName ? { ...n, folder: newName } : n));
+    setSubfolders(sf => {
+      const r = { ...sf };
+      if (r[oldName]) { r[newName] = r[oldName]; delete r[oldName]; }
+      return r;
+    });
+  };
+
+  const deleteFolder = (name) => {
+    setFolders(fs => fs.filter(f => f.name !== name));
+    setNotes(ns => ns.filter(n => n.folder !== name));
+    setSubfolders(sf => { const r = { ...sf }; delete r[name]; return r; });
+  };
 
   const handleTogglePin = (val) => {
     if (val) { setShowPINSetup(true); }
@@ -73,6 +94,8 @@ export default function App() {
             onOpenAddFolder={() => setShowModal(true)}
             subfolders={subfolders}
             onAddSubfolder={addSubfolder}
+            onRenameFolder={renameFolder}
+            onDeleteFolder={deleteFolder}
           />
         );
       case 'settings':

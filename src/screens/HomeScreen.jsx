@@ -8,7 +8,10 @@ const greet   = () => { const h = new Date().getHours(); return h < 5 ? 'Bonne n
 
 export default function HomeScreen({ dark, t, notes, folders, onNoteSelect, onNavigate, onTogglePin }) {
   const pinned = notes.filter(n => n.pinned);
-  const recent = notes.filter(n => !n.pinned).slice(0, 3);
+  const recent = notes
+    .filter(n => !n.pinned)
+    .sort((a, b) => (b.updatedAt || b.id) - (a.updatedAt || a.id))
+    .slice(0, 3);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, transition: 'background .3s' }}>

@@ -20,7 +20,7 @@ export default function NotesScreen({ dark, t, notes, onNoteSelect, onNewNote, o
       const matchT = !tagFilter || n.tags.includes(tagFilter);
       return matchQ && matchF && matchT;
     });
-    if (filter === 'recent') return [...filtered].sort((a, b) => b.id - a.id);
+    if (filter === 'recent') return [...filtered].sort((a, b) => (b.updatedAt || b.id) - (a.updatedAt || a.id));
     return filtered;
   }, [notes, search, filter, tagFilter]);
 

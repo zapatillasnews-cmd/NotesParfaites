@@ -25,7 +25,8 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const [author,      setAuthor]      = useState(init.author || 'Moi');
   const [folder,      setFolder]      = useState(init.folder || (folders?.[0]?.name ?? ''));
   const [subfolder,   setSubfolder]   = useState(init.subfolder || null);
-  const [showFolders, setShowFolders] = useState(false);
+  const [showFolders,    setShowFolders]    = useState(false);
+  const [expandedFolder, setExpandedFolder] = useState(folder);
   const [addingTag,   setAddingTag]   = useState(false);
   const [tagInput,    setTagInput]    = useState('');
   const bodyRef    = useRef(null);
@@ -44,7 +45,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
     const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     if (onUpdate) onUpdate({
       ...init, title, body, tags, author, folder, subfolder,
-      preview: body.slice(0, 100), date, time,
+      preview: body.slice(0, 100), date, time, updatedAt: Date.now(),
       color:      folderData?.color || init.color,
       colorLight: folderData?.bg    || init.colorLight,
     });
@@ -63,6 +64,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
     if (type === 'h1')     { const ls = body.lastIndexOf('\n', s - 1) + 1; next = body.slice(0, ls) + '# ' + body.slice(ls); cur = s + 2; }
     if (type === 'link')   { const w = `[${sel || 'texte'}](url)`; next = body.slice(0, s) + w + body.slice(e); cur = sel ? e + 7 : s + 5; }
     if (type === 'bullet') { const ls = body.lastIndexOf('\n', s - 1) + 1; next = body.slice(0, ls) + '• ' + body.slice(ls); cur = s + 2; }
+    if (type === 'center') { const w = `<center>${sel || 'texte'}</center>`; next = body.slice(0, s) + w + body.slice(e); cur = s + w.length; }
     selRef.current = { s: cur, e: cur };
     setBody(next);
     requestAnimationFrame(() => { el.focus(); el.setSelectionRange(cur, cur); });
@@ -134,17 +136,26 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
               {showFolders && (
                 <div style={{ marginTop: 8, borderRadius: 10, background: t.bg, overflow: 'hidden', boxShadow: t.shadow }}>
                   {folders?.map(f => {
-                    const subs = subfolders[f.name] || [];
+                    const subs     = subfolders[f.name] || [];
+                    const expanded = expandedFolder === f.name;
                     return (
                       <div key={f.id}>
-                        <div onClick={() => { setFolder(f.name); setSubfolder(null); setShowFolders(false); }}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', background: folder === f.name && !subfolder ? t.accentBg : 'transparent' }}>
-                          <div style={{ width: 16, height: 16, borderRadius: 4, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <IcFolderN s={10} c={f.color} filled />
+                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: `1px solid ${t.border}`, background: folder === f.name && !subfolder ? t.accentBg : 'transparent' }}>
+                          <div onClick={() => { setFolder(f.name); setSubfolder(null); setShowFolders(false); }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', flex: 1, cursor: 'pointer' }}>
+                            <div style={{ width: 16, height: 16, borderRadius: 4, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <IcFolderN s={10} c={f.color} filled />
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: folder === f.name && !subfolder ? t.accent : t.text }}>{f.name}</span>
                           </div>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: folder === f.name && !subfolder ? t.accent : t.text }}>{f.name}</span>
+                          {subs.length > 0 && (
+                            <div onClick={() => setExpandedFolder(expanded ? null : f.name)}
+                              style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 12, color: t.text3 }}>
+                              {expanded ? '▾' : '▸'}
+                            </div>
+                          )}
                         </div>
-                        {subs.map(sf => (
+                        {expanded && subs.map(sf => (
                           <div key={sf.id} onClick={() => { setFolder(f.name); setSubfolder(sf.name); setShowFolders(false); }}
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 28px', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', background: folder === f.name && subfolder === sf.name ? t.accentBg : 'transparent' }}>
                             <div style={{ width: 14, height: 14, borderRadius: 3, background: sf.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -228,28 +239,20 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
             <span style={{ fontSize: 13, fontWeight: 700, color: c, letterSpacing: -.3 }}>H1</span>
           </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('link')}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+          <FmtBtn onPress={() => fmt('center')}>
+            <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
+              <path d="M3 4h16M5 9h12M3 14h16" />
             </svg>
           </FmtBtn>
 
           <FmtBtn onPress={() => fmt('bullet')}>
-            <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
-              <path d="M2 4h18M2 9h18M2 14h18" />
-            </svg>
-          </FmtBtn>
-
-          <FmtBtn onPress={undo}>
-            <svg width="18" height="16" viewBox="0 0 24 22" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 10a7 7 0 107-7" /><path d="M3 3v7h7" />
-            </svg>
-          </FmtBtn>
-
-          <FmtBtn onPress={redo}>
-            <svg width="18" height="16" viewBox="0 0 24 22" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10a7 7 0 10-7-7" /><path d="M21 3v7h-7" />
+            <svg width="18" height="14" viewBox="0 0 22 18" fill="none" strokeLinecap="round">
+              <circle cx="3" cy="4" r="1.5" fill={c} />
+              <circle cx="3" cy="9" r="1.5" fill={c} />
+              <circle cx="3" cy="14" r="1.5" fill={c} />
+              <line x1="7" y1="4" x2="21" y2="4" stroke={c} strokeWidth="2" />
+              <line x1="7" y1="9" x2="21" y2="9" stroke={c} strokeWidth="2" />
+              <line x1="7" y1="14" x2="21" y2="14" stroke={c} strokeWidth="2" />
             </svg>
           </FmtBtn>
 

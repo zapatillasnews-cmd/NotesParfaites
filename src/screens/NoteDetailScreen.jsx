@@ -103,7 +103,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
     if (dark || !noteBackground) return;
     const color = noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#F4F4F4';
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
-    document.body.style.background = noteBackground;
+    document.body.style.background = color;
     return () => {
       const base = '#F4F4F4';
       document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = base; });

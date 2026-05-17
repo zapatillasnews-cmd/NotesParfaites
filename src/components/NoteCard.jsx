@@ -12,14 +12,12 @@ export default function NoteCard({ note, onOpen, onTogglePin, t, dark, compact =
     onOpen(note);
   };
 
-  const cardBg = (!dark && note.noteBackground) ? note.noteBackground : t.card;
-
   return (
     <div
       {...lp.handlers}
       onClick={handleClick}
       style={{
-        background: cardBg,
+        background: t.card,
         borderRadius: 16,
         boxShadow: selected ? `0 0 0 2.5px ${t.accent}, ${t.shadow}` : t.shadow,
         padding: compact ? '13px' : '14px 16px',

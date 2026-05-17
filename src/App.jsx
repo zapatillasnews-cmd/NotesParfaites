@@ -39,29 +39,40 @@ export default function App() {
 
   // Push notifications
   useEffect(() => {
-    const requestAndCheck = async () => {
-      if (typeof Notification === 'undefined') return;
-      if (Notification.permission === 'default') {
+    const init = async () => {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         await Notification.requestPermission();
       }
-      checkNotifications();
+      doCheckNotifications();
     };
-    requestAndCheck();
-    const id = setInterval(checkNotifications, 30000);
-    return () => clearInterval(id);
+    init();
+    const id = setInterval(doCheckNotifications, 15000);
+    const onVisible = () => { if (!document.hidden) doCheckNotifications(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
-  const checkNotifications = () => {
+  const doCheckNotifications = () => {
     const now = Date.now();
     setReminders(ns => {
       let changed = false;
       const next = ns.map(n => {
-        if (n.sent) return n;
-        if (!n.date || !n.time) return n;
+        if (n.sent || !n.date || !n.time) return n;
         const ts = new Date(`${n.date}T${n.time}:00`).getTime();
         if (isNaN(ts) || ts > now) return n;
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          try { new Notification(n.title || 'NotesParfaites', { body: 'Rappel', icon: '/icon.svg' }); } catch (e) {}
+        // Use Service Worker showNotification (works in background on Android)
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(n.title || 'NotesParfaites', {
+              body: 'Rappel — NotesParfaites',
+              icon: '/icon.svg',
+              badge: '/icon.svg',
+              vibrate: [200, 100, 200],
+              tag: String(n.id),
+            });
+          }).catch(() => {});
+        } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          try { new Notification(n.title || 'NotesParfaites', { body: 'Rappel', icon: '/icon.svg' }); } catch {}
         }
         changed = true;
         return { ...n, sent: true };

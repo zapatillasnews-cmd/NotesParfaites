@@ -29,6 +29,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const [addingTag,    setAddingTag]    = useState(false);
   const [tagInput,     setTagInput]     = useState('');
   const [headingLevel, setHeadingLevel] = useState('');
+  const [isCentered,    setIsCentered]    = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl,       setLinkUrl]       = useState('');
   const bodyRef      = useRef(null);
@@ -96,10 +97,10 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
       setHeadingLevel(document.queryCommandValue('formatBlock').toLowerCase());
     }
     if (type === 'center') {
-      if (document.queryCommandState('justifyCenter')) document.execCommand('justifyLeft', false, null);
-      else document.execCommand('justifyCenter', false, null);
+      if (isCentered) { document.execCommand('justifyLeft',   false, null); setIsCentered(false); }
+      else            { document.execCommand('justifyCenter', false, null); setIsCentered(true);  }
     }
-    if (type === 'bullet') document.execCommand('insertUnorderedList', false, null);
+    if (type === 'bullet') document.execCommand('insertText', false, '• ');
     if (type === 'link') {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) savedRangeRef.current = sel.getRangeAt(0).cloneRange();
@@ -303,7 +304,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
               </FmtBtn>
 
               <FmtBtn onPress={() => fmt('center')}>
-                <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
+                <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={isCentered ? t.accent : c} strokeWidth="2" strokeLinecap="round">
                   <path d="M3 4h16M5 9h12M3 14h16" />
                 </svg>
               </FmtBtn>
@@ -320,12 +321,10 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
               </FmtBtn>
 
               <FmtBtn onPress={() => fmt('link')}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 22, borderRadius: 6, background: `${t.accent}18` }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-                  </svg>
-                </div>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                </svg>
               </FmtBtn>
             </>
           )}

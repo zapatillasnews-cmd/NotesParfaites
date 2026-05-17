@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { IcPlus, IcFolderN, IcCalendar } from '../icons';
 
 const MRow = ({ label, children, last = false, alignTop = false, t }) => (
@@ -20,18 +20,27 @@ const FmtBtn = ({ onPress, children }) => (
 
 export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t, folders, subfolders = {} }) {
   const [title,       setTitle]       = useState(init.title);
-  const [body,        setBody]        = useState(init.body || '');
   const [tags,        setTags]        = useState([...(init.tags || [])]);
   const [author,      setAuthor]      = useState(init.author || 'Moi');
   const [folder,      setFolder]      = useState(init.folder || (folders?.[0]?.name ?? ''));
   const [subfolder,   setSubfolder]   = useState(init.subfolder || null);
   const [showFolders,    setShowFolders]    = useState(false);
   const [expandedFolder, setExpandedFolder] = useState(folder);
-  const [addingTag,   setAddingTag]   = useState(false);
-  const [tagInput,    setTagInput]    = useState('');
+  const [addingTag,    setAddingTag]    = useState(false);
+  const [tagInput,     setTagInput]     = useState('');
+  const [headingLevel, setHeadingLevel] = useState('');
   const bodyRef    = useRef(null);
   const tagInputRef = useRef(null);
-  const selRef     = useRef({ s: 0, e: 0 });
+
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.innerHTML = init.body || '';
+  }, []);
+
+  useEffect(() => {
+    const update = () => setHeadingLevel(document.queryCommandValue('formatBlock').toLowerCase());
+    document.addEventListener('selectionchange', update);
+    return () => document.removeEventListener('selectionchange', update);
+  }, []);
 
   const folderData    = folders?.find(f => f.name === folder);
   const subfolderData = subfolder ? (subfolders[folder] || []).find(sf => sf.name === subfolder) : null;
@@ -43,35 +52,37 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
     const now  = new Date();
     const date = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
     const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const bodyHTML = bodyRef.current?.innerHTML || '';
+    const bodyText = bodyRef.current?.textContent || '';
     if (onUpdate) onUpdate({
-      ...init, title, body, tags, author, folder, subfolder,
-      preview: body.slice(0, 100), date, time, updatedAt: Date.now(),
+      ...init, title, tags, author, folder, subfolder,
+      body: bodyHTML, preview: bodyText.slice(0, 100),
+      date, time, updatedAt: Date.now(),
       color:      folderData?.color || init.color,
       colorLight: folderData?.bg    || init.colorLight,
     });
     onBack();
   };
 
-  const saveSelection = (el) => { selRef.current = { s: el.selectionStart, e: el.selectionEnd }; };
-
   const fmt = (type) => {
     const el = bodyRef.current; if (!el) return;
-    const s = selRef.current.s, e = selRef.current.e;
-    const sel = body.substring(s, e);
-    let next = body, cur = e;
-    if (type === 'bold')   { const w = `**${sel || 'texte'}**`; next = body.slice(0, s) + w + body.slice(e); cur = sel ? e + 4 : s + 2; }
-    if (type === 'italic') { const w = `*${sel || 'texte'}*`;   next = body.slice(0, s) + w + body.slice(e); cur = sel ? e + 2 : s + 1; }
-    if (type === 'h1')     { const ls = body.lastIndexOf('\n', s - 1) + 1; next = body.slice(0, ls) + '# ' + body.slice(ls); cur = s + 2; }
-    if (type === 'link')   { const w = `[${sel || 'texte'}](url)`; next = body.slice(0, s) + w + body.slice(e); cur = sel ? e + 7 : s + 5; }
-    if (type === 'bullet') { const ls = body.lastIndexOf('\n', s - 1) + 1; next = body.slice(0, ls) + '• ' + body.slice(ls); cur = s + 2; }
-    if (type === 'center') { const w = `<center>${sel || 'texte'}</center>`; next = body.slice(0, s) + w + body.slice(e); cur = s + w.length; }
-    selRef.current = { s: cur, e: cur };
-    setBody(next);
-    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(cur, cur); });
+    el.focus();
+    if (type === 'bold')   document.execCommand('bold',                false, null);
+    if (type === 'italic') document.execCommand('italic',              false, null);
+    if (type === 'h1') {
+      const cur = document.queryCommandValue('formatBlock').toLowerCase();
+      if (cur === 'h1')      document.execCommand('formatBlock', false, 'h3');
+      else if (cur === 'h3') document.execCommand('formatBlock', false, 'p');
+      else                   document.execCommand('formatBlock', false, 'h1');
+      setHeadingLevel(document.queryCommandValue('formatBlock').toLowerCase());
+    }
+    if (type === 'center') document.execCommand('justifyCenter',       false, null);
+    if (type === 'bullet') document.execCommand('insertUnorderedList', false, null);
+    if (type === 'link') {
+      const url = window.prompt('URL du lien :');
+      if (url) document.execCommand('createLink', false, url);
+    }
   };
-
-  const undo = () => { bodyRef.current?.focus(); document.execCommand('undo'); };
-  const redo = () => { bodyRef.current?.focus(); document.execCommand('redo'); };
 
   const confirmTag = () => {
     const v = tagInput.trim();
@@ -211,20 +222,16 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
           </MRow>
         </div>
 
-        <textarea
+        <div
           ref={bodyRef}
-          value={body}
-          onChange={e => { setBody(e.target.value); saveSelection(e.target); }}
-          onSelect={e => saveSelection(e.target)}
-          onKeyUp={e => saveSelection(e.target)}
-          onClick={e => saveSelection(e.target)}
-          placeholder="Commencez à écrire…"
-          style={{ width: '100%', border: 'none', outline: 'none', resize: 'none', fontSize: 15, lineHeight: 1.8, color: t.text2, fontFamily: 'inherit', background: 'transparent', minHeight: 200, padding: '18px 0 0' }}
+          contentEditable
+          suppressContentEditableWarning
+          style={{ width: '100%', border: 'none', outline: 'none', fontSize: 15, lineHeight: 1.8, color: t.text2, fontFamily: 'inherit', background: 'transparent', minHeight: 200, paddingTop: 18, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
         />
       </div>
 
       {/* Format toolbar */}
-      <div style={{ flexShrink: 0, padding: '6px 16px 10px', background: t.bg, transition: 'background .3s' }}>
+      <div style={{ flexShrink: 0, padding: '6px 16px 10px', background: t.card, transition: 'background .3s' }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52, background: t.card, borderRadius: 20, padding: '0 6px', boxShadow: t.toolbarShadow }}>
 
           <FmtBtn onPress={() => fmt('bold')}>
@@ -236,7 +243,9 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
           </FmtBtn>
 
           <FmtBtn onPress={() => fmt('h1')}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: c, letterSpacing: -.3 }}>H1</span>
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: -.3, color: (headingLevel === 'h1' || headingLevel === 'h3') ? t.accent : c }}>
+              {headingLevel === 'h1' ? 'H1' : headingLevel === 'h3' ? 'H3' : 'H'}
+            </span>
           </FmtBtn>
 
           <FmtBtn onPress={() => fmt('center')}>
@@ -253,6 +262,13 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
               <line x1="7" y1="4" x2="21" y2="4" stroke={c} strokeWidth="2" />
               <line x1="7" y1="9" x2="21" y2="9" stroke={c} strokeWidth="2" />
               <line x1="7" y1="14" x2="21" y2="14" stroke={c} strokeWidth="2" />
+            </svg>
+          </FmtBtn>
+
+          <FmtBtn onPress={() => fmt('link')}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
             </svg>
           </FmtBtn>
 

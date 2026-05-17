@@ -3,7 +3,7 @@ import NoteCard from '../components/NoteCard';
 import IconBtn from '../components/IconBtn';
 import SectionHeader from '../components/SectionHeader';
 import AddFolderModal from '../modals/AddFolderModal';
-import { IcPlus, IcFolderN, IcBack } from '../icons';
+import { IcPlus, IcFolderN, IcBack, IcX } from '../icons';
 
 export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, onOpenAddFolder, onTogglePin, subfolders = {}, onAddSubfolder, onRenameFolder, onDeleteFolder }) {
   const [activeFolder,    setActiveFolder]    = useState(null);
@@ -109,16 +109,18 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', position: 'relative' }}>
               <IconBtn t={t} onClick={() => setShowAddSub(true)}><IcPlus s={16} c={t.text2} /></IconBtn>
-              <button onClick={() => setShowMenu(m => !m)} style={{ background: t.card, border: 'none', borderRadius: 10, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: t.shadow, fontSize: 16, color: t.text2, letterSpacing: 1 }}>
-                •••
+              <button onClick={() => setShowMenu(m => !m)} style={{ background: t.card, border: 'none', borderRadius: 10, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: t.shadow }}>
+                <svg width="4" height="18" viewBox="0 0 4 18" fill={t.text2}><circle cx="2" cy="2" r="2"/><circle cx="2" cy="9" r="2"/><circle cx="2" cy="16" r="2"/></svg>
               </button>
               {showMenu && (
                 <div style={{ position: 'absolute', top: 42, right: 0, background: t.card, borderRadius: 12, boxShadow: t.shadow, overflow: 'hidden', zIndex: 50, minWidth: 140 }}>
-                  <div onClick={startRename} style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: t.text, cursor: 'pointer', borderBottom: `1px solid ${t.border}` }}>
-                    ✏️ Renommer
+                  <div onClick={startRename} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${t.border}`, cursor: 'pointer' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.text3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: t.text }}>Renommer</span>
                   </div>
-                  <div onClick={handleDelete} style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#EF4444', cursor: 'pointer' }}>
-                    🗑️ Supprimer
+                  <div onClick={handleDelete} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <IcX s={14} c={t.text3} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>Supprimer</span>
                   </div>
                 </div>
               )}

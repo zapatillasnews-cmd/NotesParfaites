@@ -55,6 +55,7 @@ export const SUBFOLDERS_INIT = {
 
 export const makeNewNote = () => ({
   id: Date.now(),
+  updatedAt: Date.now(),
   title: 'Nouvelle note',
   folder: 'Travail',
   tags: [],

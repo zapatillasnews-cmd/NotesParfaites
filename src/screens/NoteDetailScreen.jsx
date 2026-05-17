@@ -29,6 +29,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const [tagInput,     setTagInput]     = useState('');
   const [headingLevel, setHeadingLevel] = useState('');
   const [isCentered,    setIsCentered]    = useState(false);
+  const [bulletMode,    setBulletMode]    = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl,       setLinkUrl]       = useState('');
   const bodyRef      = useRef(null);
@@ -99,7 +100,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
       if (isCentered) { document.execCommand('justifyLeft',   false, null); setIsCentered(false); }
       else            { document.execCommand('justifyCenter', false, null); setIsCentered(true);  }
     }
-    if (type === 'bullet') document.execCommand('insertText', false, '• ');
+    if (type === 'bullet') { document.execCommand('insertText', false, '• '); setBulletMode(true); }
     if (type === 'link') {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) savedRangeRef.current = sel.getRangeAt(0).cloneRange();
@@ -262,6 +263,24 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
           onKeyUp={saveRange}
           onClick={saveRange}
           onSelect={saveRange}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && bulletMode) {
+              e.preventDefault();
+              const sel = window.getSelection();
+              if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                const text = range.startContainer.textContent || '';
+                const lastLine = text.slice(0, range.startOffset).split('\n').pop();
+                if (lastLine === '• ' || lastLine === '•') {
+                  document.execCommand('delete', false, null);
+                  document.execCommand('delete', false, null);
+                  setBulletMode(false);
+                  return;
+                }
+              }
+              document.execCommand('insertText', false, '\n• ');
+            }
+          }}
           style={{ width: '100%', border: 'none', outline: 'none', fontSize: 15, lineHeight: 1.8, color: t.text2, fontFamily: 'inherit', background: 'transparent', minHeight: 200, paddingTop: 18, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
         />
       </div>

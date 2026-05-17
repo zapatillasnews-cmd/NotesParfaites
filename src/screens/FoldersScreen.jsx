@@ -10,6 +10,7 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
   const [activeSubfolder, setActiveSubfolder] = useState(null);
   const [showAddSub,      setShowAddSub]      = useState(false);
   const [showMenu,        setShowMenu]        = useState(false);
+  const [confirmDelete,   setConfirmDelete]   = useState(false);
   const [renaming,        setRenaming]        = useState(false);
   const [renameValue,     setRenameValue]     = useState('');
 
@@ -21,6 +22,7 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
     setRenameValue(activeFolder);
     setRenaming(true);
     setShowMenu(false);
+    setConfirmDelete(false);
   };
 
   const confirmRename = () => {
@@ -32,12 +34,11 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
     setRenaming(false);
   };
 
-  const handleDelete = () => {
-    setShowMenu(false);
-    if (window.confirm(`Supprimer le dossier "${activeFolder}" et toutes ses notes ?`)) {
-      onDeleteFolder?.(activeFolder);
-      setActiveFolder(null);
-    }
+  const handleDelete = () => setConfirmDelete(true);
+  const confirmDeleteFolder = () => {
+    setConfirmDelete(false); setShowMenu(false);
+    onDeleteFolder?.(activeFolder);
+    setActiveFolder(null);
   };
 
   // Subfolder detail view
@@ -118,17 +119,25 @@ export default function FoldersScreen({ dark, t, notes, folders, onNoteSelect, o
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.text3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     <span style={{ fontSize: 13, fontWeight: 600, color: t.text }}>Renommer</span>
                   </div>
-                  <div onClick={handleDelete} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                    <IcX s={14} c={t.text3} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>Supprimer</span>
-                  </div>
+                  {confirmDelete ? (
+                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: t.text, flex: 1 }}>Confirmer ?</span>
+                      <button onClick={confirmDeleteFolder} style={{ fontSize: 12, fontWeight: 700, color: '#EF4444', background: '#FEF2F2', border: 'none', padding: '4px 10px', borderRadius: 6, fontFamily: 'inherit' }}>Oui</button>
+                      <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 12, fontWeight: 600, color: t.text2, background: t.card2, border: 'none', padding: '4px 10px', borderRadius: 6, fontFamily: 'inherit' }}>Non</button>
+                    </div>
+                  ) : (
+                    <div onClick={handleDelete} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                      <IcX s={14} c={t.text3} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#EF4444' }}>Supprimer</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }} onClick={() => setShowMenu(false)}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }} onClick={() => { setShowMenu(false); setConfirmDelete(false); }}>
           {subs.length > 0 && (
             <div style={{ marginBottom: 20 }}>
               <SectionHeader title="Sous-dossiers" t={t} />

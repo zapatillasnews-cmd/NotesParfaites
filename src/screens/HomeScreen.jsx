@@ -42,7 +42,7 @@ export default function HomeScreen({ dark, t, notes, folders, onNoteSelect, onNa
         {pinned.length > 0 && (
           <>
             <SectionHeader title="Épinglées" action="Voir tout" onAction={() => onNavigate('notes')} t={t} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10, marginBottom: 22 }}>
               {pinned.map(note => (
                 <NoteCard key={note.id} note={note} onOpen={onNoteSelect} onTogglePin={onTogglePin} t={t} dark={dark} compact />
               ))}

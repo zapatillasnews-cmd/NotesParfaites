@@ -20,6 +20,7 @@ export default function NoteCard({ note, onOpen, onTogglePin, t, dark, compact =
         userSelect: 'none', WebkitUserSelect: 'none',
         position: 'relative',
         touchAction: 'manipulation',
+        overflow: 'hidden',
       }}
     >
       <NoteIcon note={note} size={compact ? 26 : 42} />

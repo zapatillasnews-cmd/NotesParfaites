@@ -22,6 +22,7 @@ export default function App() {
   const [subfolders, setSubfolders] = useLocalStorage('np_subfolders', SUBFOLDERS_INIT);
   const [pinEnabled, setPinEnabled] = useLocalStorage('np_pinEnabled', false);
   const [pin,        setPin]        = useLocalStorage('np_pin', '');
+  const [reminders,  setReminders]  = useLocalStorage('np_reminders', []);
 
   const [pinLocked,    setPinLocked]    = useState(pinEnabled && !!pin);
   const [showModal,    setShowModal]    = useState(false);
@@ -36,6 +37,28 @@ export default function App() {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
   }, [dark]);
 
+  // Push notifications check
+  useEffect(() => {
+    if (typeof Notification !== 'undefined') Notification.requestPermission();
+    const check = () => {
+      const now = Date.now();
+      setReminders(ns => ns.map(n => {
+        if (n.sent) return n;
+        const ts = n.date && n.time ? new Date(`${n.date}T${n.time}`).getTime() : 0;
+        if (ts && ts <= now) {
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification(n.title || 'NotesParfaites', { body: n.body || 'Rappel', icon: '/icon.svg' });
+          }
+          return { ...n, sent: true };
+        }
+        return n;
+      }));
+    };
+    check();
+    const id = setInterval(check, 30000);
+    return () => clearInterval(id);
+  }, []);
+
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
   const addSubfolder = (folderName, sf) => setSubfolders(prev => ({ ...prev, [folderName]: [...(prev[folderName] || []), sf] }));
@@ -44,6 +67,8 @@ export default function App() {
     const exists = ns.some(n => n.id === updated.id);
     return exists ? ns.map(n => n.id === updated.id ? updated : n) : [...ns, updated];
   });
+  const deleteNotes  = (ids) => setNotes(ns => ns.filter(n => !ids.has(n.id)));
+  const moveNotes    = (ids, folder) => setNotes(ns => ns.map(n => ids.has(n.id) ? { ...n, folder, subfolder: null } : n));
 
   const renameFolder = (oldName, newName) => {
     setFolders(fs => fs.map(f => f.name === oldName ? { ...f, name: newName } : f));
@@ -87,7 +112,15 @@ export default function App() {
       case 'home':
         return <HomeScreen {...common} folders={folders} onNavigate={navigate} />;
       case 'notes':
-        return <NotesScreen {...common} onNewNote={() => setSelectedNote(makeNewNote())} />;
+        return (
+          <NotesScreen
+            {...common}
+            onNewNote={() => setSelectedNote(makeNewNote())}
+            folders={folders}
+            onDeleteNotes={deleteNotes}
+            onMoveNotes={moveNotes}
+          />
+        );
       case 'folders':
         return (
           <FoldersScreen
@@ -110,6 +143,8 @@ export default function App() {
             pinEnabled={pinEnabled}
             onTogglePin={handleTogglePin}
             onLockNow={() => { if (pinEnabled && pin) setPinLocked(true); }}
+            reminders={reminders}
+            onSetReminders={setReminders}
           />
         );
       default:

@@ -2,9 +2,8 @@ import { useState, useMemo, useRef } from 'react';
 import AddNotifModal from '../modals/AddNotifModal';
 import { IcBell, IcX, IcPlus, IcChevronR, IcDownload, IcUpload } from '../icons';
 
-export default function SettingsScreen({ dark, t, onToggleDark, notes, folders, onSetNotes, onSetFolders, pinEnabled, onTogglePin, onLockNow }) {
+export default function SettingsScreen({ dark, t, onToggleDark, notes, folders, onSetNotes, onSetFolders, pinEnabled, onTogglePin, onLockNow, reminders = [], onSetReminders }) {
   const [notifs,       setNotifs]       = useState(true);
-  const [reminders,    setReminders]    = useState([]);
   const [showAddNotif, setShowAddNotif] = useState(false);
   const fileRef = useRef(null);
 
@@ -76,7 +75,7 @@ export default function SettingsScreen({ dark, t, onToggleDark, notes, folders, 
                 <div style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{r.title}</div>
                 {(r.date || r.time) && <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{r.date} {r.time}</div>}
               </div>
-              <button onClick={() => setReminders(rs => rs.filter(x => x.id !== r.id))} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}><IcX s={13} c={t.text3} /></button>
+              <button onClick={() => onSetReminders?.(rs => rs.filter(x => x.id !== r.id))} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}><IcX s={13} c={t.text3} /></button>
             </div>
           ))}
           {notifs && (
@@ -100,7 +99,7 @@ export default function SettingsScreen({ dark, t, onToggleDark, notes, folders, 
 
       </div>
 
-      {showAddNotif && <AddNotifModal t={t} dark={dark} onClose={() => setShowAddNotif(false)} onAdd={r => setReminders(rs => [...rs, r])} />}
+      {showAddNotif && <AddNotifModal t={t} dark={dark} onClose={() => setShowAddNotif(false)} onAdd={r => onSetReminders?.(rs => [...rs, r])} />}
     </div>
   );
 }

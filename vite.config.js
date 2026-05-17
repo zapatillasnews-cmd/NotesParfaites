@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icone.PNG'],
+      includeAssets: ['icone.PNG', 'icon.svg'],
       manifest: {
         name: 'NotesParfaites',
         short_name: 'Notes',
@@ -19,7 +19,8 @@ export default defineConfig({
         theme_color: '#F4F4F4',
         start_url: '/',
         icons: [
-          { src: 'icone.PNG', sizes: 'any', type: 'image/png', purpose: 'any maskable' },
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'icone.PNG', sizes: 'any', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

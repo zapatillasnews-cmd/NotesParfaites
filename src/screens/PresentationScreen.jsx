@@ -15,6 +15,7 @@ export default function PresentationScreen({ note, onClose, dark }) {
   const slides = parseSlides(note.body || '');
   const [idx, setIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -32,15 +33,17 @@ export default function PresentationScreen({ note, onClose, dark }) {
   return (
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 1000, background: bg, display: 'flex', flexDirection: 'column', touchAction: 'pan-y' }}
-      onTouchStart={e => setTouchStartX(e.touches[0].clientX)}
+      onTouchStart={e => { setTouchStartX(e.touches[0].clientX); setTouchStartY(e.touches[0].clientY); }}
       onTouchEnd={e => {
         if (touchStartX === null) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(dx) > 48) {
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 48) {
           if (dx < 0) setIdx(i => Math.min(i + 1, slides.length - 1));
           else        setIdx(i => Math.max(i - 1, 0));
         }
         setTouchStartX(null);
+        setTouchStartY(null);
       }}
     >
       {/* Header */}
@@ -53,7 +56,7 @@ export default function PresentationScreen({ note, onClose, dark }) {
       </div>
 
       {/* Slide content */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 52px', overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 52px' }}>
         <div
           dangerouslySetInnerHTML={{ __html: slides[idx] }}
           style={{ fontSize: 20, lineHeight: 1.78, color: 'rgba(255,255,255,.88)', fontFamily: "'Plus Jakarta Sans',sans-serif", maxWidth: 620, width: '100%', textAlign: 'center' }}

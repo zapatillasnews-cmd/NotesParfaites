@@ -11,11 +11,24 @@ const NOTE_BACKGROUNDS = [
   '#EDE9FE', '#DDD6FE', '#F5F3FF', '#CCFBF1',
 ];
 
+const NOTE_GRADIENTS = [
+  { label: 'Ciel',    value: 'linear-gradient(160deg,#DBEAFE,#BAE6FD)' },
+  { label: 'Plage',   value: 'linear-gradient(160deg,#FEF9C3,#FDBA74 55%,#BAE6FD)' },
+  { label: 'Forêt',   value: 'linear-gradient(160deg,#D1FAE5,#6EE7B7 55%,#059669)' },
+  { label: 'Coucher', value: 'linear-gradient(160deg,#FEE2E2,#FBCFE8 50%,#EDE9FE)' },
+  { label: 'Nuit',    value: 'linear-gradient(160deg,#1E1B4B,#4338CA 55%,#6366F1)' },
+  { label: 'Aurore',  value: 'linear-gradient(160deg,#FDE68A,#FCA5A5 50%,#DDD6FE)' },
+  { label: 'Océan',   value: 'linear-gradient(160deg,#CFFAFE,#22D3EE 55%,#0891B2)' },
+  { label: 'Menthe',  value: 'linear-gradient(160deg,#CCFBF1,#99F6E4 55%,#34D399)' },
+];
+
 const HIGHLIGHT_COLORS = [
-  '#FEF08A', '#FDE047', '#FCA5A5', '#F87171',
-  '#FBCFE8', '#F9A8D4', '#DDD6FE', '#C4B5FD',
+  '#FEF08A', '#FDE047', '#FED7AA', '#FDBA74',
+  '#FCA5A5', '#F87171', '#FBCFE8', '#F9A8D4',
   '#BBF7D0', '#86EFAC', '#99F6E4', '#5EEAD4',
-  '#BAE6FD', '#7DD3FC', '#FED7AA', '#FDBA74',
+  '#BAE6FD', '#7DD3FC', '#DDD6FE', '#C4B5FD',
+  '#D4A96A', '#C08B5C', '#A0785A', '#F5DEB3',
+  '#E5E7EB', '#D1D5DB', '#FFF9C4', '#B2EBF2',
 ];
 
 const MRow = ({ label, children, last = false, alignTop = false, t }) => (
@@ -257,6 +270,24 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
                         }}
                       />
                     ))}
+                  </div>
+                  <div style={{ marginTop: 12, borderTop: `1px solid ${t.border}`, paddingTop: 10 }}>
+                    <span style={{ fontSize: 11, color: t.text3, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>Scènes</span>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                      {NOTE_GRADIENTS.map(g => (
+                        <div key={g.value} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                          <button
+                            onClick={() => { setNoteBackground(g.value); setShowBgPicker(false); }}
+                            style={{
+                              width: 48, height: 28, borderRadius: 6, background: g.value, padding: 0, cursor: 'pointer', border: 'none',
+                              outline: noteBackground === g.value ? `2.5px solid ${t.accent}` : `1.5px solid ${t.border}`,
+                              outlineOffset: '1px', boxSizing: 'border-box',
+                            }}
+                          />
+                          <span style={{ fontSize: 9, color: t.text3, whiteSpace: 'nowrap' }}>{g.label}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

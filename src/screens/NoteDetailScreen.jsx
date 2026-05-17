@@ -29,8 +29,11 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const [addingTag,    setAddingTag]    = useState(false);
   const [tagInput,     setTagInput]     = useState('');
   const [headingLevel, setHeadingLevel] = useState('');
-  const bodyRef    = useRef(null);
-  const tagInputRef = useRef(null);
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [linkUrl,       setLinkUrl]       = useState('');
+  const bodyRef      = useRef(null);
+  const tagInputRef  = useRef(null);
+  const savedRangeRef = useRef(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.innerHTML = init.body || '';
@@ -41,6 +44,21 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
     document.addEventListener('selectionchange', update);
     return () => document.removeEventListener('selectionchange', update);
   }, []);
+
+  const saveRange = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && bodyRef.current?.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  const restoreRange = () => {
+    const sel = window.getSelection();
+    if (sel && savedRangeRef.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+    }
+  };
 
   const folderData    = folders?.find(f => f.name === folder);
   const subfolderData = subfolder ? (subfolders[folder] || []).find(sf => sf.name === subfolder) : null;
@@ -67,6 +85,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const fmt = (type) => {
     const el = bodyRef.current; if (!el) return;
     el.focus();
+    restoreRange();
     if (type === 'bold')   document.execCommand('bold',                false, null);
     if (type === 'italic') document.execCommand('italic',              false, null);
     if (type === 'h1') {
@@ -76,12 +95,26 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
       else                   document.execCommand('formatBlock', false, 'h1');
       setHeadingLevel(document.queryCommandValue('formatBlock').toLowerCase());
     }
-    if (type === 'center') document.execCommand('justifyCenter',       false, null);
+    if (type === 'center') {
+      if (document.queryCommandState('justifyCenter')) document.execCommand('justifyLeft', false, null);
+      else document.execCommand('justifyCenter', false, null);
+    }
     if (type === 'bullet') document.execCommand('insertUnorderedList', false, null);
     if (type === 'link') {
-      const url = window.prompt('URL du lien :');
-      if (url) document.execCommand('createLink', false, url);
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+      setLinkUrl('');
+      setShowLinkInput(true);
     }
+  };
+
+  const confirmLink = () => {
+    const url = linkUrl.trim();
+    setShowLinkInput(false); setLinkUrl('');
+    if (!url) return;
+    const el = bodyRef.current; if (!el) return;
+    el.focus(); restoreRange();
+    document.execCommand('createLink', false, url.startsWith('http') ? url : 'https://' + url);
   };
 
   const confirmTag = () => {
@@ -226,6 +259,9 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
           ref={bodyRef}
           contentEditable
           suppressContentEditableWarning
+          onKeyUp={saveRange}
+          onClick={saveRange}
+          onSelect={saveRange}
           style={{ width: '100%', border: 'none', outline: 'none', fontSize: 15, lineHeight: 1.8, color: t.text2, fontFamily: 'inherit', background: 'transparent', minHeight: 200, paddingTop: 18, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
         />
       </div>
@@ -234,43 +270,65 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
       <div style={{ flexShrink: 0, padding: '6px 16px 10px', background: t.card, transition: 'background .3s' }}>
         <div style={{ display: 'flex', alignItems: 'center', height: 52, background: t.card, borderRadius: 20, padding: '0 6px', boxShadow: t.toolbarShadow }}>
 
-          <FmtBtn onPress={() => fmt('bold')}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: c, fontFamily: 'Georgia,serif', letterSpacing: -.5 }}>B</span>
-          </FmtBtn>
+          {showLinkInput ? (
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 8, padding: '0 12px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+              </svg>
+              <input autoFocus value={linkUrl} onChange={e => setLinkUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmLink(); if (e.key === 'Escape') { setShowLinkInput(false); setLinkUrl(''); } }}
+                placeholder="https://..."
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: t.text, fontFamily: 'inherit', background: 'transparent' }}
+              />
+              <button onMouseDown={e => { e.preventDefault(); confirmLink(); }} onTouchStart={e => { e.preventDefault(); confirmLink(); }}
+                style={{ fontSize: 15, color: t.accent, background: 'transparent', border: 'none', fontWeight: 700, padding: '0 4px', fontFamily: 'inherit' }}>✓</button>
+              <button onMouseDown={e => { e.preventDefault(); setShowLinkInput(false); setLinkUrl(''); }} onTouchStart={e => { e.preventDefault(); setShowLinkInput(false); setLinkUrl(''); }}
+                style={{ fontSize: 18, color: t.text3, background: 'transparent', border: 'none', padding: '0 4px', fontFamily: 'inherit', lineHeight: 1 }}>×</button>
+            </div>
+          ) : (
+            <>
+              <FmtBtn onPress={() => fmt('bold')}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: c, fontFamily: 'Georgia,serif', letterSpacing: -.5 }}>B</span>
+              </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('italic')}>
-            <em style={{ fontSize: 18, color: c, fontFamily: 'Georgia,serif', fontStyle: 'italic' }}>I</em>
-          </FmtBtn>
+              <FmtBtn onPress={() => fmt('italic')}>
+                <em style={{ fontSize: 18, color: c, fontFamily: 'Georgia,serif', fontStyle: 'italic' }}>I</em>
+              </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('h1')}>
-            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: -.3, color: (headingLevel === 'h1' || headingLevel === 'h3') ? t.accent : c }}>
-              {headingLevel === 'h1' ? 'H1' : headingLevel === 'h3' ? 'H3' : 'H'}
-            </span>
-          </FmtBtn>
+              <FmtBtn onPress={() => fmt('h1')}>
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: -.3, color: (headingLevel === 'h1' || headingLevel === 'h3') ? t.accent : c }}>
+                  {headingLevel === 'h1' ? 'H1' : headingLevel === 'h3' ? 'H3' : 'H'}
+                </span>
+              </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('center')}>
-            <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
-              <path d="M3 4h16M5 9h12M3 14h16" />
-            </svg>
-          </FmtBtn>
+              <FmtBtn onPress={() => fmt('center')}>
+                <svg width="18" height="14" viewBox="0 0 22 18" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
+                  <path d="M3 4h16M5 9h12M3 14h16" />
+                </svg>
+              </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('bullet')}>
-            <svg width="18" height="14" viewBox="0 0 22 18" fill="none" strokeLinecap="round">
-              <circle cx="3" cy="4" r="1.5" fill={c} />
-              <circle cx="3" cy="9" r="1.5" fill={c} />
-              <circle cx="3" cy="14" r="1.5" fill={c} />
-              <line x1="7" y1="4" x2="21" y2="4" stroke={c} strokeWidth="2" />
-              <line x1="7" y1="9" x2="21" y2="9" stroke={c} strokeWidth="2" />
-              <line x1="7" y1="14" x2="21" y2="14" stroke={c} strokeWidth="2" />
-            </svg>
-          </FmtBtn>
+              <FmtBtn onPress={() => fmt('bullet')}>
+                <svg width="18" height="14" viewBox="0 0 22 18" fill="none" strokeLinecap="round">
+                  <circle cx="3" cy="4" r="1.5" fill={c} />
+                  <circle cx="3" cy="9" r="1.5" fill={c} />
+                  <circle cx="3" cy="14" r="1.5" fill={c} />
+                  <line x1="7" y1="4" x2="21" y2="4" stroke={c} strokeWidth="2" />
+                  <line x1="7" y1="9" x2="21" y2="9" stroke={c} strokeWidth="2" />
+                  <line x1="7" y1="14" x2="21" y2="14" stroke={c} strokeWidth="2" />
+                </svg>
+              </FmtBtn>
 
-          <FmtBtn onPress={() => fmt('link')}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-            </svg>
-          </FmtBtn>
+              <FmtBtn onPress={() => fmt('link')}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 22, borderRadius: 6, background: `${t.accent}18` }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={t.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                  </svg>
+                </div>
+              </FmtBtn>
+            </>
+          )}
 
         </div>
       </div>

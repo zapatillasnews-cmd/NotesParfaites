@@ -148,10 +148,8 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
               </>
             ) : (
               <>
-                <button onClick={() => setConfirmDel(true)} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={t.text3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                  </svg>
+                <button onClick={() => setConfirmDel(true)} style={{ background: 'transparent', border: 'none', padding: 0, lineHeight: 1 }}>
+                  <span style={{ fontSize: 20, color: t.text2, fontWeight: 300, lineHeight: 1 }}>×</span>
                 </button>
                 <button onClick={save} style={{ background: 'transparent', border: 'none', padding: 0 }}>
                   <span style={{ fontSize: 15, color: t.text, fontWeight: 700 }}>Enregistrer</span>

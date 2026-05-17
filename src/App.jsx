@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getTheme } from './theme';
 import { NOTES_INIT, FOLDERS_INIT, SUBFOLDERS_INIT, makeNewNote } from './data';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -28,6 +28,9 @@ export default function App() {
   const [showModal,    setShowModal]    = useState(false);
   const [showPINSetup, setShowPINSetup] = useState(false);
 
+  const remindersRef = useRef(reminders);
+  useEffect(() => { remindersRef.current = reminders; }, [reminders]);
+
   const t = getTheme(dark);
 
   const navigate = (p) => { setPage(p); setSelectedNote(null); };
@@ -37,49 +40,50 @@ export default function App() {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
   }, [dark]);
 
-  // Push notifications
+  // Schedule a list of reminders into the Service Worker
+  const scheduleInSW = (rems) => {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      if (!reg.active) return;
+      rems.forEach(r => {
+        if (r.sent || !r.date || !r.time) return;
+        const ts = new Date(`${r.date}T${r.time}:00`).getTime();
+        if (isNaN(ts)) return;
+        const delay = ts - Date.now();
+        reg.active.postMessage({
+          type: 'SCHEDULE',
+          payload: { id: r.id, title: r.title, delay: Math.max(0, delay) },
+        });
+        // If missed, mark as sent immediately
+        if (delay <= 0) {
+          setReminders(ns => ns.map(n => n.id === r.id ? { ...n, sent: true } : n));
+        }
+      });
+    }).catch(() => {});
+  };
+
+  // Init: request permission + schedule all pending reminders
   useEffect(() => {
     const init = async () => {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         await Notification.requestPermission();
       }
-      doCheckNotifications();
+      // Wait for SW to be ready then schedule
+      scheduleInSW(remindersRef.current);
     };
     init();
-    const id = setInterval(doCheckNotifications, 15000);
-    const onVisible = () => { if (!document.hidden) doCheckNotifications(); };
+    // Re-check on app foreground (catches missed notifications if SW was killed)
+    const onVisible = () => {
+      if (!document.hidden) scheduleInSW(remindersRef.current);
+    };
     document.addEventListener('visibilitychange', onVisible);
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
-  const doCheckNotifications = () => {
-    const now = Date.now();
-    setReminders(ns => {
-      let changed = false;
-      const next = ns.map(n => {
-        if (n.sent || !n.date || !n.time) return n;
-        const ts = new Date(`${n.date}T${n.time}:00`).getTime();
-        if (isNaN(ts) || ts > now) return n;
-        // Use Service Worker showNotification (works in background on Android)
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(n.title || 'NotesParfaites', {
-              body: 'Rappel — NotesParfaites',
-              icon: '/icon.svg',
-              badge: '/icon.svg',
-              vibrate: [200, 100, 200],
-              tag: String(n.id),
-            });
-          }).catch(() => {});
-        } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          try { new Notification(n.title || 'NotesParfaites', { body: 'Rappel', icon: '/icon.svg' }); } catch {}
-        }
-        changed = true;
-        return { ...n, sent: true };
-      });
-      return changed ? next : ns;
-    });
-  };
+  // Re-schedule whenever reminders list changes (new reminder added or deleted)
+  useEffect(() => {
+    scheduleInSW(reminders);
+  }, [reminders]);
 
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
@@ -175,7 +179,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', fontFamily: "'Plus Jakarta Sans',sans-serif", WebkitFontSmoothing: 'antialiased', background: t.bg, transition: 'background .3s' }}>
+    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', fontFamily: "'Plus Jakarta Sans',sans-serif", WebkitFontSmoothing: 'antialiased', background: t.bg, transition: 'background .3s', paddingTop: 'env(safe-area-inset-top)' }}>
 
       {pinLocked && pin ? (
         <PINScreen pin={pin} onUnlock={() => setPinLocked(false)} t={t} dark={dark} />

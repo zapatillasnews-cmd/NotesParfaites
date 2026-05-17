@@ -37,27 +37,38 @@ export default function App() {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
   }, [dark]);
 
-  // Push notifications check
+  // Push notifications
   useEffect(() => {
-    if (typeof Notification !== 'undefined') Notification.requestPermission();
-    const check = () => {
-      const now = Date.now();
-      setReminders(ns => ns.map(n => {
-        if (n.sent) return n;
-        const ts = n.date && n.time ? new Date(`${n.date}T${n.time}`).getTime() : 0;
-        if (ts && ts <= now) {
-          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification(n.title || 'NotesParfaites', { body: n.body || 'Rappel', icon: '/icon.svg' });
-          }
-          return { ...n, sent: true };
-        }
-        return n;
-      }));
+    const requestAndCheck = async () => {
+      if (typeof Notification === 'undefined') return;
+      if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+      checkNotifications();
     };
-    check();
-    const id = setInterval(check, 30000);
+    requestAndCheck();
+    const id = setInterval(checkNotifications, 30000);
     return () => clearInterval(id);
   }, []);
+
+  const checkNotifications = () => {
+    const now = Date.now();
+    setReminders(ns => {
+      let changed = false;
+      const next = ns.map(n => {
+        if (n.sent) return n;
+        if (!n.date || !n.time) return n;
+        const ts = new Date(`${n.date}T${n.time}:00`).getTime();
+        if (isNaN(ts) || ts > now) return n;
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          try { new Notification(n.title || 'NotesParfaites', { body: 'Rappel', icon: '/icon.svg' }); } catch (e) {}
+        }
+        changed = true;
+        return { ...n, sent: true };
+      });
+      return changed ? next : ns;
+    });
+  };
 
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);

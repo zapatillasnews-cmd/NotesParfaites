@@ -1,16 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { IcPlus, IcFolderN, IcCalendar } from '../icons';
-import PresentationScreen from './PresentationScreen';
 
-const COLORS = [
-  { color: '#6366F1', bg: '#EEF2FF' },
-  { color: '#10B981', bg: '#DCFCE7' },
-  { color: '#F59E0B', bg: '#FEF3C7' },
-  { color: '#EF4444', bg: '#FEF2F2' },
-  { color: '#EC4899', bg: '#FDF2F8' },
-  { color: '#14B8A6', bg: '#CCFBF1' },
-  { color: '#8B5CF6', bg: '#F5F3FF' },
-  { color: '#64748B', bg: '#F1F5F9' },
+const NOTE_BACKGROUNDS = [
+  '#DBEAFE', // bleu
+  '#FCE7F3', // rose
+  '#D1FAE5', // vert
+  '#FEF9C3', // jaune
+  '#EDE9FE', // mauve
+  '#FFEDD5', // orange
+  '#FEE2E2', // rouge
+  '#CCFBF1', // turquoise
+];
+
+const HIGHLIGHT_COLORS = [
+  '#FEF08A', // jaune
+  '#FED7AA', // orange
+  '#FBCFE8', // rose
+  '#FECACA', // rouge
+  '#BBF7D0', // vert
+  '#99F6E4', // turquoise
+  '#BAE6FD', // bleu
+  '#DDD6FE', // violet
 ];
 
 const MRow = ({ label, children, last = false, alignTop = false, t }) => (
@@ -30,25 +40,23 @@ const FmtBtn = ({ onPress, children }) => (
 );
 
 export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelete, dark, t, folders, subfolders = {} }) {
-  const [title,            setTitle]            = useState(init.title);
-  const [tags,             setTags]             = useState([...(init.tags || [])]);
-  const [author,           setAuthor]           = useState(init.author || 'Moi');
-  const [folder,           setFolder]           = useState(init.folder || (folders?.[0]?.name ?? ''));
-  const [subfolder,        setSubfolder]        = useState(init.subfolder || null);
-  const [showFolders,      setShowFolders]      = useState(false);
-  const [expandedFolder,   setExpandedFolder]   = useState(folder);
-  const [addingTag,        setAddingTag]        = useState(false);
-  const [tagInput,         setTagInput]         = useState('');
-  const [headingLevel,     setHeadingLevel]     = useState('');
-  const [isCentered,       setIsCentered]       = useState(false);
-  const [bulletMode,       setBulletMode]       = useState(false);
-  const [confirmDel,       setConfirmDel]       = useState(false);
-  const [showLinkInput,    setShowLinkInput]    = useState(false);
-  const [linkUrl,          setLinkUrl]          = useState('');
-  const [showHighlight,    setShowHighlight]    = useState(false);
-  const [noteColor,        setNoteColor]        = useState(init.noteColor || null);
-  const [noteColorBg,      setNoteColorBg]      = useState(init.noteColorBg || null);
-  const [showPresentation, setShowPresentation] = useState(false);
+  const [title,          setTitle]          = useState(init.title);
+  const [tags,           setTags]           = useState([...(init.tags || [])]);
+  const [author,         setAuthor]         = useState(init.author || 'Moi');
+  const [folder,         setFolder]         = useState(init.folder || (folders?.[0]?.name ?? ''));
+  const [subfolder,      setSubfolder]      = useState(init.subfolder || null);
+  const [showFolders,    setShowFolders]    = useState(false);
+  const [expandedFolder, setExpandedFolder] = useState(folder);
+  const [addingTag,      setAddingTag]      = useState(false);
+  const [tagInput,       setTagInput]       = useState('');
+  const [headingLevel,   setHeadingLevel]   = useState('');
+  const [isCentered,     setIsCentered]     = useState(false);
+  const [bulletMode,     setBulletMode]     = useState(false);
+  const [confirmDel,     setConfirmDel]     = useState(false);
+  const [showLinkInput,  setShowLinkInput]  = useState(false);
+  const [linkUrl,        setLinkUrl]        = useState('');
+  const [showHighlight,  setShowHighlight]  = useState(false);
+  const [noteBackground, setNoteBackground] = useState(init.noteBackground || null);
 
   const bodyRef       = useRef(null);
   const tagInputRef   = useRef(null);
@@ -81,9 +89,12 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
 
   const folderData    = folders?.find(f => f.name === folder);
   const subfolderData = subfolder ? (subfolders[folder] || []).find(sf => sf.name === subfolder) : null;
-  const activeColor   = noteColor || subfolderData?.color || folderData?.color || '#6366F1';
-  const activeBg      = noteColorBg || subfolderData?.bg  || folderData?.bg    || '#EEF2FF';
+  const activeColor   = subfolderData?.color || folderData?.color || '#6366F1';
+  const activeBg      = subfolderData?.bg    || folderData?.bg    || '#EEF2FF';
   const folderLabel   = subfolder ? `${folder} › ${subfolder}` : folder;
+
+  // Background: use chosen note background in light mode, default card in dark mode
+  const screenBg = (!dark && noteBackground) ? noteBackground : t.card;
 
   const save = () => {
     const now  = new Date();
@@ -95,9 +106,9 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
       ...init, title, tags, author, folder, subfolder,
       body: bodyHTML, preview: bodyText.slice(0, 100),
       date, time, updatedAt: Date.now(),
-      noteColor, noteColorBg,
-      color:      noteColor   || folderData?.color || init.color,
-      colorLight: noteColorBg || folderData?.bg    || init.colorLight,
+      noteBackground,
+      color:      folderData?.color || init.color,
+      colorLight: folderData?.bg    || init.colorLight,
     });
     onBack();
   };
@@ -161,10 +172,8 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
 
   const c = t.text2;
 
-  const currentNote = { ...init, title, body: bodyRef.current?.innerHTML || init.body, color: activeColor };
-
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.card, transition: 'background .3s', position: 'relative' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: screenBg, transition: 'background .3s' }}>
 
       {/* Header */}
       <div style={{ padding: '20px 20px 0', flexShrink: 0 }}>
@@ -184,9 +193,6 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
               <>
                 <button onClick={() => setConfirmDel(true)} style={{ background: 'transparent', border: 'none', padding: 0, lineHeight: 1 }}>
                   <span style={{ fontSize: 20, color: t.text2, fontWeight: 300, lineHeight: 1 }}>×</span>
-                </button>
-                <button onClick={() => setShowPresentation(true)} style={{ background: 'transparent', border: 'none', padding: 0 }}>
-                  <span style={{ fontSize: 16, color: t.text3 }}>▶</span>
                 </button>
                 <button onClick={save} style={{ background: 'transparent', border: 'none', padding: 0 }}>
                   <span style={{ fontSize: 15, color: t.text, fontWeight: 700 }}>Enregistrer</span>
@@ -217,21 +223,26 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
             />
           </MRow>
 
-          <MRow label="Couleur" t={t}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              {COLORS.map(col => (
+          <MRow label="Fond" t={t}>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
+              {NOTE_BACKGROUNDS.map(col => (
                 <button
-                  key={col.color}
-                  onClick={() => { setNoteColor(col.color); setNoteColorBg(col.bg); }}
-                  style={{ width: 24, height: 24, borderRadius: '50%', background: col.color, border: noteColor === col.color ? `3px solid ${col.color}` : '2px solid transparent', outline: noteColor === col.color ? '2px solid white' : 'none', boxSizing: 'border-box', flexShrink: 0, padding: 0, cursor: 'pointer' }}
+                  key={col}
+                  onClick={() => setNoteBackground(noteBackground === col ? null : col)}
+                  style={{
+                    width: 24, height: 24, borderRadius: '50%', background: col, padding: 0, cursor: 'pointer', flexShrink: 0,
+                    border: noteBackground === col ? `2px solid ${t.accent}` : `2px solid transparent`,
+                    outline: noteBackground === col ? `2px solid ${col}` : 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
               ))}
-              <button
-                onClick={() => { setNoteColor(null); setNoteColorBg(null); }}
-                style={{ width: 24, height: 24, borderRadius: '50%', background: t.card2, border: `1.5px dashed ${t.border2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: t.text3, cursor: 'pointer', flexShrink: 0, padding: 0 }}
-              >
-                ×
-              </button>
+              {noteBackground && (
+                <button
+                  onClick={() => setNoteBackground(null)}
+                  style={{ width: 24, height: 24, borderRadius: '50%', background: t.card2, border: `1.5px dashed ${t.border2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: t.text3, cursor: 'pointer', flexShrink: 0, padding: 0 }}
+                >×</button>
+              )}
             </div>
           </MRow>
 
@@ -352,19 +363,19 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
       </div>
 
       {/* Format toolbar */}
-      <div style={{ flexShrink: 0, padding: '6px 16px 10px', background: t.card, transition: 'background .3s' }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: 52, background: t.card, borderRadius: 20, padding: '0 6px', boxShadow: t.toolbarShadow }}>
+      <div style={{ flexShrink: 0, padding: '6px 16px 10px', background: screenBg, transition: 'background .3s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', height: 52, background: screenBg, borderRadius: 20, padding: '0 6px', boxShadow: t.toolbarShadow }}>
 
           {showHighlight ? (
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 10, padding: '0 14px' }}>
-              {['#FEF08A', '#FBCFE8', '#BBF7D0', '#BAE6FD'].map(col => (
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 6, padding: '0 10px' }}>
+              {HIGHLIGHT_COLORS.map(col => (
                 <button key={col} onClick={() => applyHighlight(col)}
-                  style={{ width: 28, height: 28, borderRadius: '50%', background: col, border: 'none', flexShrink: 0, cursor: 'pointer', touchAction: 'manipulation' }} />
+                  style={{ width: 26, height: 26, borderRadius: '50%', background: col, border: 'none', flexShrink: 0, cursor: 'pointer', touchAction: 'manipulation', padding: 0 }} />
               ))}
               <button onClick={() => applyHighlight('none')}
-                style={{ fontSize: 12, color: t.text3, background: 'transparent', border: 'none', fontFamily: 'inherit', flexShrink: 0, touchAction: 'manipulation' }}>Effacer</button>
+                style={{ fontSize: 11, color: t.text3, background: 'transparent', border: 'none', fontFamily: 'inherit', flexShrink: 0, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>✕</button>
               <button onClick={() => setShowHighlight(false)}
-                style={{ fontSize: 20, color: t.text3, background: 'transparent', border: 'none', marginLeft: 'auto', lineHeight: 1, touchAction: 'manipulation' }}>×</button>
+                style={{ fontSize: 20, color: t.text3, background: 'transparent', border: 'none', marginLeft: 'auto', lineHeight: 1, touchAction: 'manipulation', padding: '0 2px' }}>×</button>
             </div>
           ) : showLinkInput ? (
             <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 8, padding: '0 12px' }}>
@@ -430,10 +441,6 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
 
         </div>
       </div>
-
-      {showPresentation && (
-        <PresentationScreen note={currentNote} onClose={() => setShowPresentation(false)} dark={dark} />
-      )}
     </div>
   );
 }

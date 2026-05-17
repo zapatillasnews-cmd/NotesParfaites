@@ -39,6 +39,7 @@ export default function App() {
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);
   const addSubfolder = (folderName, sf) => setSubfolders(prev => ({ ...prev, [folderName]: [...(prev[folderName] || []), sf] }));
+  const deleteNote   = (id) => { setNotes(ns => ns.filter(n => n.id !== id)); setSelectedNote(null); };
   const updateNote   = (updated) => setNotes(ns => {
     const exists = ns.some(n => n.id === updated.id);
     return exists ? ns.map(n => n.id === updated.id ? updated : n) : [...ns, updated];
@@ -73,6 +74,7 @@ export default function App() {
           note={selectedNote}
           onBack={() => setSelectedNote(null)}
           onUpdate={updateNote}
+          onDelete={deleteNote}
           dark={dark}
           t={t}
           folders={folders}

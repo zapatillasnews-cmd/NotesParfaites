@@ -17,7 +17,7 @@ const FmtBtn = ({ onPress, children }) => (
   </button>
 );
 
-export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t, folders, subfolders = {} }) {
+export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelete, dark, t, folders, subfolders = {} }) {
   const [title,       setTitle]       = useState(init.title);
   const [tags,        setTags]        = useState([...(init.tags || [])]);
   const [author,      setAuthor]      = useState(init.author || 'Moi');
@@ -30,6 +30,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
   const [headingLevel, setHeadingLevel] = useState('');
   const [isCentered,    setIsCentered]    = useState(false);
   const [bulletMode,    setBulletMode]    = useState(false);
+  const [confirmDel,    setConfirmDel]    = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl,       setLinkUrl]       = useState('');
   const bodyRef      = useRef(null);
@@ -138,13 +139,25 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, dark, t
             <svg width="8" height="14" viewBox="0 0 8 14"><path d="M7 1L1 7l6 6" stroke={t.text3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
             <span style={{ fontSize: 15, color: t.text3, fontWeight: 400 }}>Retour</span>
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <button onClick={onBack} style={{ background: 'transparent', border: 'none', padding: 0, lineHeight: 1 }}>
-              <span style={{ fontSize: 20, color: t.text2, fontWeight: 300, lineHeight: 1 }}>×</span>
-            </button>
-            <button onClick={save} style={{ background: 'transparent', border: 'none', padding: 0 }}>
-              <span style={{ fontSize: 15, color: t.text, fontWeight: 700 }}>Enregistrer</span>
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {confirmDel ? (
+              <>
+                <span style={{ fontSize: 13, color: t.text2 }}>Supprimer ?</span>
+                <button onClick={() => onDelete?.(init.id)} style={{ fontSize: 13, fontWeight: 700, color: '#EF4444', background: '#FEF2F2', border: 'none', padding: '4px 10px', borderRadius: 6, fontFamily: 'inherit' }}>Oui</button>
+                <button onClick={() => setConfirmDel(false)} style={{ fontSize: 13, fontWeight: 600, color: t.text2, background: t.card2, border: 'none', padding: '4px 10px', borderRadius: 6, fontFamily: 'inherit' }}>Non</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setConfirmDel(true)} style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={t.text3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+                <button onClick={save} style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                  <span style={{ fontSize: 15, color: t.text, fontWeight: 700 }}>Enregistrer</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

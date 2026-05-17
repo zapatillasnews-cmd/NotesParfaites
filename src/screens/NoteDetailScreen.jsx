@@ -99,6 +99,18 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
     return () => document.removeEventListener('selectionchange', update);
   }, []);
 
+  useEffect(() => {
+    if (dark || !noteBackground) return;
+    const color = noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#F4F4F4';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
+    document.body.style.background = noteBackground;
+    return () => {
+      const base = '#F4F4F4';
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = base; });
+      document.body.style.background = base;
+    };
+  }, [noteBackground, dark]);
+
   const saveRange = () => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0 && bodyRef.current?.contains(sel.anchorNode)) {

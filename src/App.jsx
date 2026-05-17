@@ -35,6 +35,7 @@ export default function App() {
   useEffect(() => {
     const color = dark ? '#0A0A0A' : '#F4F4F4';
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = color; });
+    document.body.style.background = color;
   }, [dark]);
 
   // Push notifications

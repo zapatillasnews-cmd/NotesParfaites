@@ -100,10 +100,13 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   }, []);
 
   useEffect(() => {
-    if (dark || !noteBackground) return;
-    const color = noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#F4F4F4';
-    document.body.style.background = color;
-    return () => { document.body.style.background = '#F4F4F4'; };
+    const solidColor = dark
+      ? '#0A0A0A'
+      : noteBackground
+        ? (noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#F4F4F4')
+        : '#FFFFFF';
+    document.body.style.background = solidColor;
+    return () => { document.body.style.background = dark ? '#0A0A0A' : '#F4F4F4'; };
   }, [noteBackground, dark]);
 
   const saveRange = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getTheme } from './theme';
 import { NOTES_INIT, FOLDERS_INIT, SUBFOLDERS_INIT, makeNewNote } from './data';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -36,49 +36,37 @@ export default function App() {
     document.body.style.background = dark ? '#0A0A0A' : '#F4F4F4';
   }, [dark]);
 
-  // Push notifications
+  const scheduleAllInSW = useCallback((rems) => {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      if (!reg.active) return;
+      rems.forEach(r => {
+        if (r.sent || !r.date || !r.time) return;
+        const ts = new Date(`${r.date}T${r.time}:00`).getTime();
+        const delay = ts - Date.now();
+        if (!isNaN(ts) && delay > 0) {
+          reg.active.postMessage({ type: 'SCHEDULE', payload: { id: r.id, title: r.title, delay } });
+        } else if (!isNaN(ts) && delay <= 0) {
+          reg.active.postMessage({ type: 'SCHEDULE', payload: { id: r.id, title: r.title, delay: 0 } });
+          setReminders(ns => ns.map(n => n.id === r.id ? { ...n, sent: true } : n));
+        }
+      });
+    });
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         await Notification.requestPermission();
       }
-      doCheckNotifications();
+      scheduleAllInSW(reminders);
     };
     init();
-    const id = setInterval(doCheckNotifications, 15000);
-    const onVisible = () => { if (!document.hidden) doCheckNotifications(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
-  const doCheckNotifications = () => {
-    const now = Date.now();
-    setReminders(ns => {
-      let changed = false;
-      const next = ns.map(n => {
-        if (n.sent || !n.date || !n.time) return n;
-        const ts = new Date(`${n.date}T${n.time}:00`).getTime();
-        if (isNaN(ts) || ts > now) return n;
-        // Use Service Worker showNotification (works in background on Android)
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(n.title || 'NotesParfaites', {
-              body: 'Rappel — NotesParfaites',
-              icon: '/icon.svg',
-              badge: '/icon.svg',
-              vibrate: [200, 100, 200],
-              tag: String(n.id),
-            });
-          }).catch(() => {});
-        } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          try { new Notification(n.title || 'NotesParfaites', { body: 'Rappel', icon: '/icon.svg' }); } catch {}
-        }
-        changed = true;
-        return { ...n, sent: true };
-      });
-      return changed ? next : ns;
-    });
-  };
+  useEffect(() => {
+    scheduleAllInSW(reminders);
+  }, [reminders]);
 
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);

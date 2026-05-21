@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getTheme } from './theme';
 import { NOTES_INIT, FOLDERS_INIT, SUBFOLDERS_INIT, makeNewNote } from './data';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -33,40 +33,71 @@ export default function App() {
   const navigate = (p) => { setPage(p); setSelectedNote(null); };
 
   useEffect(() => {
-    document.body.style.background = dark ? '#0A0A0A' : '#F4F4F4';
+    const bg = dark ? '#0A0A0A' : '#F4F4F4';
+    document.body.style.background = bg;
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', bg);
   }, [dark]);
 
-  const scheduleAllInSW = useCallback((rems) => {
-    if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.ready.then(reg => {
-      if (!reg.active) return;
-      rems.forEach(r => {
-        if (r.sent || !r.date || !r.time) return;
-        const ts = new Date(`${r.date}T${r.time}:00`).getTime();
-        const delay = ts - Date.now();
-        if (!isNaN(ts) && delay > 0) {
-          reg.active.postMessage({ type: 'SCHEDULE', payload: { id: r.id, title: r.title, delay } });
-        } else if (!isNaN(ts) && delay <= 0) {
-          reg.active.postMessage({ type: 'SCHEDULE', payload: { id: r.id, title: r.title, delay: 0 } });
-          setReminders(ns => ns.map(n => n.id === r.id ? { ...n, sent: true } : n));
-        }
+  const triggerLocalNotification = useCallback((r) => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(r.title || 'NotesParfaites', {
+          body: 'Rappel — NotesParfaites',
+          icon: '/icon.svg',
+          badge: '/icon.svg',
+          vibrate: [200, 100, 200],
+          tag: String(r.id),
+        });
       });
-    });
-  }, []);
+    } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      new Notification(r.title || 'NotesParfaites', {
+        body: 'Rappel — NotesParfaites',
+        icon: '/icon.svg',
+      });
+    }
+    setReminders(prev => prev.map(n => n.id === r.id ? { ...n, sent: true } : n));
+  }, [setReminders]);
+
+  const localTimersRef = useRef(new Map());
 
   useEffect(() => {
-    const init = async () => {
+    localTimersRef.current.forEach(timerId => clearTimeout(timerId));
+    localTimersRef.current.clear();
+
+    const checkAndSchedule = async () => {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         await Notification.requestPermission();
       }
-      scheduleAllInSW(reminders);
-    };
-    init();
-  }, []);
 
-  useEffect(() => {
-    scheduleAllInSW(reminders);
-  }, [reminders]);
+      reminders.forEach(r => {
+        if (r.sent || !r.date || !r.time) return;
+        const ts = new Date(`${r.date}T${r.time}:00`).getTime();
+        const delay = ts - Date.now();
+        if (!isNaN(ts)) {
+          if (delay <= 0) {
+            triggerLocalNotification(r);
+          } else {
+            const timerId = setTimeout(() => {
+              triggerLocalNotification(r);
+            }, delay);
+            localTimersRef.current.set(r.id, timerId);
+          }
+        }
+      });
+    };
+
+    checkAndSchedule();
+
+    return () => {
+      localTimersRef.current.forEach(timerId => clearTimeout(timerId));
+    };
+  }, [reminders, triggerLocalNotification]);
 
   const togglePin    = (id) => setNotes(ns => ns.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
   const addFolder    = (fd) => setFolders(prev => [...prev, { id: Date.now(), count: 0, ...fd }]);

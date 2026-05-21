@@ -30,6 +30,20 @@ export default function PresentationScreen({ note, onClose, dark }) {
   const accent = note.color || '#6366F1';
   const bg = '#0d0d18';
 
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="theme-color"]');
+    const oldVal = meta ? meta.getAttribute('content') : null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', bg);
+    return () => {
+      if (meta && oldVal) meta.setAttribute('content', oldVal);
+    };
+  }, []);
+
   return (
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 1000, background: bg, display: 'flex', flexDirection: 'column', touchAction: 'pan-y' }}

@@ -106,7 +106,20 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
         ? (noteBackground.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#F4F4F4')
         : '#FFFFFF';
     document.body.style.background = solidColor;
-    return () => { document.body.style.background = dark ? '#0A0A0A' : '#F4F4F4'; };
+
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', solidColor);
+
+    return () => {
+      const fallbackColor = dark ? '#0A0A0A' : '#F4F4F4';
+      document.body.style.background = fallbackColor;
+      if (meta) meta.setAttribute('content', fallbackColor);
+    };
   }, [noteBackground, dark]);
 
   const saveRange = () => {

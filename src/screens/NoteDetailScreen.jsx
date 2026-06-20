@@ -84,6 +84,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   const [noteBackground, setNoteBackground] = useState(init.noteBackground || null);
   const [showBgPicker,   setShowBgPicker]   = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+  const [kbHeight,       setKbHeight]       = useState(0);
 
   const bodyRef       = useRef(null);
   const tagInputRef   = useRef(null);
@@ -97,6 +98,23 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
     const update = () => setHeadingLevel(document.queryCommandValue('formatBlock').toLowerCase());
     document.addEventListener('selectionchange', update);
     return () => document.removeEventListener('selectionchange', update);
+  }, []);
+
+  // Suit la hauteur du clavier virtuel pour remonter la barre de formatage juste au-dessus.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const h = window.innerHeight - vv.height - vv.offsetTop;
+      setKbHeight(h > 60 ? h : 0);
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -231,7 +249,7 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
   const currentNote = { ...init, title, body: bodyRef.current?.innerHTML || init.body };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: kbHeight, display: 'flex', flexDirection: 'column', ...rootBg, transition: 'background .3s' }}>
 
       {/* Header */}
       <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)', paddingLeft: '20px', paddingRight: '20px', paddingBottom: 0, flexShrink: 0 }}>

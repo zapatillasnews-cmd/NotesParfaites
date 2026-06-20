@@ -102,6 +102,20 @@ export default function NoteDetailScreen({ note: init, onBack, onUpdate, onDelet
 
   // Suit la hauteur du clavier virtuel pour remonter la barre de formatage juste au-dessus.
   useEffect(() => {
+    // API VirtualKeyboard (Chromium / Android PWA) : hauteur exacte du clavier.
+    const vk = navigator.virtualKeyboard;
+    if (vk) {
+      vk.overlaysContent = true;
+      const onGeo = () => setKbHeight(vk.boundingRect.height || 0);
+      vk.addEventListener('geometrychange', onGeo);
+      onGeo();
+      return () => {
+        vk.removeEventListener('geometrychange', onGeo);
+        vk.overlaysContent = false;
+        setKbHeight(0);
+      };
+    }
+    // Repli (iOS Safari, etc.) : estimation via visualViewport.
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
